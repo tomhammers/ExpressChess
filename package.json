@@ -1,0 +1,29 @@
+{
+  "name": "nodechess",
+  "version": "0.1.0",
+  "description": "Online chess game",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.13.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomhammers/NodeChess.git"
+  },
+  "keywords": [
+    "chess",
+    "online",
+    "node",
+    "javascript"
+  ],
+  "author": "Tom Kerr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tomhammers/NodeChess/issues"
+  },
+  "homepage": "https://github.com/tomhammers/NodeChess#readme"
+}
