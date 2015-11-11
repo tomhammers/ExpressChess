@@ -1,4 +1,10 @@
-canvas {
+/*canvas {
   width: 100%;
   height: auto;
+}*/
+
+canvas {
+  width: 60vw;
+  height: 60vw;
 }
+
