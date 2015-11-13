@@ -1,27 +1,44 @@
+var ChessBoard = function ChessBoard(canvas) {
 
-var canvas = document.getElementById('game'); 
-if (canvas.getContext) {
-	var context = canvas.getContext('2d');
-} else {
-	// unsupported canvas
-}
+	this.canvas = canvas; 
+	this.context = this.canvas.getContext('2d');
+	this.width = canvas.width;
+	this.height = canvas.height;
+	this.rows = 8;
+	this.columns = 8;
+	this.widthIncrement = (this.width) / this.columns;
+	this.heightIncrement = (this.height)  / this.rows;
 
-var width = canvas.scrollWidth; // responsive width
-var height = canvas.scrollHeight; // responsive height
-var rows = 8;
-var columns = 8;
-var blah = 0;
+	ChessBoard.prototype.drawBoard = function() {
+		for(var row = 0; row < 8; row++) {
+			for(var column = 0; column < 8; column++) {
+				if(this.alternativeSquare(row,column)) {
+					// only actually need to fill in alternative squares
+					this.colourSquare('#c9c9c9', row * this.widthIncrement, column * this.heightIncrement)
+					// if (row === 0 || row ===1) {
+					// 	context.fillText(265A, row, column);
+					// }
+				}
+				// pseudo else, if not an alternative square, just leave it as white
+			}
+		}
+		
+	};
 
-var widthIncrement = width / columns;
+	ChessBoard.prototype.colourSquare = function(colour, x, y) {
+		this.context.fillStyle = colour;
+		this.context.fillRect(x, y, this.widthIncrement, this.heightIncrement)
+	};
 
+	ChessBoard.prototype.alternativeSquare = function(row, column) {
+		return (this.checkIfEven(row) && !this.checkIfEven(column)) || // even row, odd column OR
+            (!this.checkIfEven(row) && this.checkIfEven(column)) // odd row, even column
+	};
 
-for(var i = 0; i < rows; i++) {
-	
-	context.strokeRect(blah+0.5, 0+0.5, widthIncrement, 20);
-	//console.log(i * widthIncrement);
-	console.log(i * widthIncrement);
-	blah +=20;
-}
-context.stroke();
+	ChessBoard.prototype.checkIfEven = function(number) {
+		return number == 0 || number % 2 == 0;
+	};
+};
 
-canvas.style.border   = "1px solid";
+var chessBoard = new ChessBoard(document.getElementById('game'));
+chessBoard.drawBoard();
