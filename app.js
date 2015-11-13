@@ -9,6 +9,7 @@ var ChessBoard = function ChessBoard(canvas) {
 	this.widthIncrement = (this.width) / this.columns;
 	this.heightIncrement = (this.height)  / this.rows;
 
+
 	ChessBoard.prototype.drawBoard = function() {
 		for(var row = 0; row < 8; row++) {
 			for(var column = 0; column < 8; column++) {
