@@ -1,5 +1,5 @@
 canvas {
-  border-color: black;
+  border-color: gold;
   border-style: solid;
   border-width: 5px;
 
@@ -7,10 +7,9 @@ canvas {
   Chessboard wont look right unless its square but we want it to work in lower resolutions*/
   float:left;
   position: relative;
-  width: 45%;
+  width: 40%;
   margin:0.25%;
   background-position:center center;
   background-repeat:no-repeat; 
 
-  font-size: 58;
 }

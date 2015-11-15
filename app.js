@@ -18,12 +18,7 @@ var ChessBoard = function ChessBoard(canvas) {
 			for(var column = 0; column < 8; column++) {
 				if(this.alternativeSquare(row,column)) {
 					// only actually need to fill in alternative squares
-					this.colourSquare('#C5C8C9', row * this.widthIncrement, column * this.heightIncrement)
-
-					//var kingB = new ChessPiece('../img/kingB.svg');
-				
-					
-					
+					this.colourSquare('#C5C8C9', row * this.widthIncrement, column * this.heightIncrement)	
 				}
 				// pseudo else, if not an alternative square, just leave it as white, no need to do anything
 			}
@@ -46,22 +41,22 @@ var ChessBoard = function ChessBoard(canvas) {
 };
 
 
-
-// class ideas for now
-var ChessPiece = function ChessPiece(pathToImage, canvas) {
-	// player
-	// piece (player)
+var ChessPiece = function ChessPiece(pathToImage, chessBoardObject) {
 	
-	this.canvas2 = canvas; 
-	this.context2 = this.canvas2.getContext('2d');
 	this.pieceImage = new Image();
 	this.pieceImage.src = pathToImage;
 
+	// Centering the Chess Piece in its current square:
+	// ChessPiece takes up 90% of available square
+	this.imageWidth = (chessBoardObject.widthIncrement / 100) * 90;
+	this.imageHeight = (chessBoardObject.heightIncrement / 100) * 90;
 
+	// puts a 5% margin around the piece
+	this.xIncrement = (chessBoardObject.widthIncrement / 100) * 5;
+	this.yIncrement = (chessBoardObject.heightIncrement / 100) * 5;
 
-	this.context2.drawImage(this.pieceImage, 10, 10);	
-
-	
+	chessBoardObject.context.drawImage(this.pieceImage, this.xIncrement, this.yIncrement,
+	 this.imageWidth, this.imageHeight);	
 
 	// isMoveValid?
 
@@ -89,8 +84,8 @@ var Render = function Render() {
 		var chessBoard = new ChessBoard(document.getElementById('game'));
 		chessBoard.drawBoard();
 
-		var piece = new ChessPiece('img/Black B.png', document.getElementById('game'));
-		//piece.drawPiece();
+		// pass the chessboard object so we know where to place the pieces
+		var rookB1 = new ChessPiece('img/Black R.png', chessBoard);
 	}
 }
 
@@ -100,7 +95,7 @@ var Render = function Render() {
 // Chess Pieces ^^
 
 var render = new Render();
-setInterval(render.drawBoard, 100);
+setInterval(render.drawBoard, 50); // No need to render superfast on a chess game
 render.drawBoard();
 
 }); // jQuery ready
