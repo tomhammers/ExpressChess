@@ -4,7 +4,7 @@ var ChessBoard = function ChessBoard(canvas) {
 	this.canvas = canvas; 
 	this.context = this.canvas.getContext('2d');
 
-	this.canvas.width = (window.innerWidth / 100) * 50;
+	this.canvas.width = (window.innerWidth / 100) * 40;
 	this.canvas.height = this.canvas.width; // keeps everything square
 	this.width = this.canvas.width;
 	this.height = this.canvas.height;
@@ -26,13 +26,18 @@ var ChessBoard = function ChessBoard(canvas) {
 		for(var row = 0; row < 8; row++) {
 			for(var column = 0; column < 8; column++) {
 
-				if(this.alternativeSquare(row,column)) {
+				if(this.squareClickedX === row && this.squareClickedY === column) {
+					this.colourSquare('yellow', row * this.squareWidth, column * this.squareHeight);
+				}
+				else if(this.alternativeSquare(row,column)) {
 					// only actually need to fill in alternative squares
 
 					this.colourSquare('#6d6a6a', row * this.squareWidth, column * this.squareHeight);	
 					//console.log(this.canvasX);
 				}
-				// pseudo else, gives illusion of white squares being rendered but no need to actually do anything
+				else {
+					this.colourSquare('white', row * this.squareWidth, column * this.squareHeight);	
+				}
 			}
 		}	
 	};
@@ -56,8 +61,6 @@ var ChessBoard = function ChessBoard(canvas) {
 		// note the need to minus the canvas offset from the main window or we get wrong co-ords
 		this.canvasX = event.pageX - this.canvas.offsetLeft - 5; 
 		this.canvasY = event.pageY - this.canvas.offsetTop;
-		console.log('clicked at x: ' + this.canvasX + " and y: " + this.canvasY);
-		// now we have click co-ords, use some maths to work out which square was clicked
 		this.squareClicked(this.canvasX, this.canvasY);
 
 	}
@@ -65,8 +68,6 @@ var ChessBoard = function ChessBoard(canvas) {
 	ChessBoard.prototype.squareClicked = function(x, y) {
 		this.squareClickedX = Math.ceil(x / this.squareWidth) - 1;
 		this.squareClickedY = Math.ceil(y / this.squareHeight) - 1;
-		console.log("Clicked on column: " + this.squareClickedX + " and row " + this.squareClickedY);
-		this.colourSquare('yellow', this.squareClickedX * this.squareWidth, this.squareClickedY * this.squareHeight);
 	}
 
 	// listen for mouse clicks on the canvas
@@ -100,7 +101,9 @@ var ChessPiece = function ChessPiece(pathToImage, chessBoardObject, x, y) {
 															(y * chessBoardObject.squareHeight) + this.yMargin, // y co-ordinate
 		 													this.imageWidth, this.imageHeight);	 // image width + height defined above
 
-	}	
+	}
+
+	// Check image has been loaded before trying to draw it	
 	this.pieceImage.addEventListener('load', this.drawPiece.bind(this) , false);
 
 	// isMoveValid?
@@ -126,15 +129,10 @@ var Game = function Game() {
 var Render = function Render() {
 
 	Render.prototype.drawBoard = function(chessBoardObject) {
-		
-		//var chessBoard = new ChessBoard(document.getElementById('game'));
 		chessBoardObject.drawBoard();
-		console.log(chessBoardObject);
 	}
 
 	Render.prototype.drawPieces = function(chessBoardObject) {
-
-
 		// pass the chessboard object so we know where to place the pieces
 		for(var row = 0; row < 8; row++) {
 			for(var column = 0; column < 8; column++) {
@@ -142,7 +140,6 @@ var Render = function Render() {
 				switch(boardLayout[row][column]) {
 					case 'rB':  // black rook
 						var rookB = new ChessPiece('img/Black R.png', chessBoardObject, column, row);
-						console.log(column + " " + row);
 						break;
 					case 'nB':  // black knight
 						var knightB = new ChessPiece('img/Black N.png', chessBoardObject, column, row);
