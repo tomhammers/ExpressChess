@@ -3,13 +3,4 @@ canvas {
   border-style: solid;
   border-width: 5px;
 
-  /*Used some logic from here to keep my responsive canvas square: http://jsfiddle.net/webtiki/MpXYr/2/light/;
-  Chessboard wont look right unless its square but we want it to work in lower resolutions*/
-  float:left;
-  position: relative;
-  width: 40%;
-  margin:0.25%;
-  background-position:center center;
-  background-repeat:no-repeat; 
-
 }
