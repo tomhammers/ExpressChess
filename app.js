@@ -13,6 +13,7 @@ $(document).ready(function() {
 	chessBoard.canvas.addEventListener("mousedown", function() {
 		render.drawBoard(chessBoard);
 		render.drawPieces(chessBoard);
+		//render.drawSquare(chessBoard);
 		}, false);
 	// this perhaps could be done better? Instead of redrawing the whole board ->
 	// just redraw the selected square - look into if I have time

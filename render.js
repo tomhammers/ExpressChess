@@ -183,6 +183,13 @@ var Render = function Render() {
 			}
 		}
 	}
+
+	Render.prototype.drawSquare = function(chessBoardObject) {
+		chessBoardObject.colourSquare("yellow", chessBoardObject.squareClickedX * chessBoardObject.squareWidth, 
+												chessBoardObject.squareClickedY * chessBoardObject.squareHeight);
+		var selectedPiece = boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX];
+		
+	}
 	
 
 	
