@@ -1,4 +1,3 @@
-// This file is responsible for rendering the chessboard
 "use strict";
 var ChessBoard = function ChessBoard(canvas) {
 	this.canvas = canvas; 
@@ -20,27 +19,34 @@ var ChessBoard = function ChessBoard(canvas) {
 	this.squareClickedX;
 	this.squareClickedY;
 
-
+	this.prevSquareClickedX;
+	this.prevSquareClickedY;
 
 	ChessBoard.prototype.drawBoard = function() {
 		for(var row = 0; row < 8; row++) {
 			for(var column = 0; column < 8; column++) {
 
-				if(this.squareClickedX === row && this.squareClickedY === column) {
-					this.colourSquare('yellow', row * this.squareWidth, column * this.squareHeight);
-				}
-				else if(this.alternativeSquare(row,column)) {
-					// only actually need to fill in alternative squares
+				this.drawSquare(row, column);
 
-					this.colourSquare('#6d6a6a', row * this.squareWidth, column * this.squareHeight);	
-					//console.log(this.canvasX);
-				}
-				else {
-					this.colourSquare('white', row * this.squareWidth, column * this.squareHeight);	
-				}
 			}
 		}	
 	};
+
+	// this was in drawBoard, this is better since this code can be reused on click events
+	ChessBoard.prototype.drawSquare = function(row, column) {
+		if(this.squareClickedX === row && this.squareClickedY === column) {
+			this.colourSquare('yellow', row * this.squareWidth, column * this.squareHeight);
+		}
+		else if(this.alternativeSquare(row,column)) {
+			// only actually need to fill in alternative squares
+
+			this.colourSquare('#6d6a6a', row * this.squareWidth, column * this.squareHeight);	
+			//console.log(this.canvasX);
+		}
+		else {
+			this.colourSquare('white', row * this.squareWidth, column * this.squareHeight);	
+		}
+	}
 
 	ChessBoard.prototype.colourSquare = function(colour, x, y) {
 		this.context.fillStyle = colour;
@@ -57,31 +63,31 @@ var ChessBoard = function ChessBoard(canvas) {
 	};
 
 
-	ChessBoard.prototype.assignClickCoordinates = function(event) {
+	ChessBoard.prototype.squareClicked = function(event) {
 		// note the need to minus the canvas offset from the main window or we get wrong co-ords
-		this.canvasX = event.pageX - this.canvas.offsetLeft - 5; 
-		this.canvasY = event.pageY - this.canvas.offsetTop;
-		this.squareClicked(this.canvasX, this.canvasY);
-
+		this.canvasX = event.pageX - this.canvas.offsetLeft - 5; // where user clicked - canvas offset - border
+		this.canvasY = event.pageY - this.canvas.offsetTop - 5;
+		this.squareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
+		this.squareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
 	}
 
-	ChessBoard.prototype.squareClicked = function(x, y) {
-		this.squareClickedX = Math.ceil(x / this.squareWidth) - 1;
-		this.squareClickedY = Math.ceil(y / this.squareHeight) - 1;
+
+	ChessBoard.prototype.prevSquareClicked = function(x, y) {
+		// co-ord / square width rounded up = square clicked
+		this.prevSquareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
+		this.prevSquareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
+		console.log("sds  sd " + this.prevSquareClickedX + " " + this.prevSquareClickedY);
 	}
 
 	// listen for mouse clicks on the canvas
-	this.canvas.addEventListener("mousedown", this.assignClickCoordinates.bind(this), false); // need to bind "this" or the click event will become "this"!
-
+	this.canvas.addEventListener("mousedown", this.squareClicked.bind(this), false); // need to bind "this" or the click event will become "this"!
+	this.canvas.addEventListener("mouseup", this.prevSquareClicked.bind(this), false);
 };
 
 
 var ChessPiece = function ChessPiece(pathToImage, chessBoardObject, x, y) {
 	
 	this.pieceImage = new Image();
-	
-	this.pieceImage.src = pathToImage;
-
 	// ChessPiece takes up 94% of available square, I've done this to keep my chessboard responsive
 	this.imageWidth = (chessBoardObject.squareWidth / 100) * 94;
 	this.imageHeight = (chessBoardObject.squareHeight / 100) * 94;
@@ -92,7 +98,6 @@ var ChessPiece = function ChessPiece(pathToImage, chessBoardObject, x, y) {
 	this.xMargin = (chessBoardObject.squareWidth / 100) * 3;
 	this.yMargin = (chessBoardObject.squareHeight / 100) * 3;
 
-
 	// x === to the index in the row for loop in the Render object which is passed to this method
 	// y === to the index in the column for loop in the Render object which is passed to this method
 	// multiplying x or y by the squareWidth/height should give the correct x and y coordinates
@@ -100,9 +105,8 @@ var ChessPiece = function ChessPiece(pathToImage, chessBoardObject, x, y) {
 		chessBoardObject.context.drawImage(this.pieceImage, (x * chessBoardObject.squareWidth) + this.xMargin, // x co-ordinate
 															(y * chessBoardObject.squareHeight) + this.yMargin, // y co-ordinate
 		 													this.imageWidth, this.imageHeight);	 // image width + height defined above
-
 	}
-
+	this.pieceImage.src = pathToImage;
 	// Check image has been loaded before trying to draw it	
 	this.pieceImage.addEventListener('load', this.drawPiece.bind(this) , false);
 
@@ -128,67 +132,91 @@ var Game = function Game() {
 
 var Render = function Render() {
 
+	// method just to call another method?
 	Render.prototype.drawBoard = function(chessBoardObject) {
 		chessBoardObject.drawBoard();
 	}
 
+	// Draw everything in the global boardLayout array
 	Render.prototype.drawPieces = function(chessBoardObject) {
 		// pass the chessboard object so we know where to place the pieces
 		for(var row = 0; row < 8; row++) {
 			for(var column = 0; column < 8; column++) {
-				// Initial boardlayout is declared in define.js
-				switch(boardLayout[row][column]) {
-					case 'rB':  // black rook
-						var rookB = new ChessPiece('img/Black R.png', chessBoardObject, column, row);
-						break;
-					case 'nB':  // black knight
-						var knightB = new ChessPiece('img/Black N.png', chessBoardObject, column, row);
-						break;
-					case 'bB':  // black bishop
-						var bishopB = new ChessPiece('img/Black B.png', chessBoardObject, column, row);
-						break;
-					case 'qB':  // black queen
-						var queenB = new ChessPiece('img/Black Q.png', chessBoardObject, column, row);
-						break;
-					case 'kB':  // black king
-						var kingB = new ChessPiece('img/Black K.png', chessBoardObject, column, row);
-						break;
-					case 'pB':  // black pawn
-						var pawnB = new ChessPiece('img/Black P.png', chessBoardObject, column, row);
-						break;
-					case '':  // nothing
-						break; // do nothing
-					case 'pW':  // white pawn
-						var pawnW = new ChessPiece('img/White P.png', chessBoardObject, column, row);
-						break;
-					case 'rW':  // white rook
-						var rookW = new ChessPiece('img/White R.png', chessBoardObject, column, row);
-						break;
-					case 'nW':  // white knight
-						var knightW = new ChessPiece('img/White N.png', chessBoardObject, column, row);
-						break;
-					case 'bW':  // white bishop
-						var bishopW = new ChessPiece('img/White B.png', chessBoardObject, column, row);
-						break;
-					case 'qW':  // white queen
-						var queenW = new ChessPiece('img/White Q.png', chessBoardObject, column, row);
-						break;
-					case 'kW':  // white king
-						var kingW = new ChessPiece('img/White K.png', chessBoardObject, column, row);
-						break;
-					
-				default:
-					console.log('something went wrong drawing chess pieces');
-				}
+				this.drawPiece(chessBoardObject, row, column);
 			}
 		}
 	}
 
+	// not currently used
 	Render.prototype.drawSquare = function(chessBoardObject) {
-		chessBoardObject.colourSquare("yellow", chessBoardObject.squareClickedX * chessBoardObject.squareWidth, 
-												chessBoardObject.squareClickedY * chessBoardObject.squareHeight);
-		var selectedPiece = boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX];
-		
+		// firstly highlight the square the user clicked on
+		// future me - update so only highlights on users pieces
+		chessBoardObject.drawSquare(chessBoardObject.squareClickedX, chessBoardObject.squareClickedY);
+
+		// now just redraw the selected piece
+		this.drawPiece(chessBoardObject, chessBoardObject.squareClickedY, chessBoardObject.squareClickedX);	
+	}
+
+	// not currently used
+	Render.prototype.drawPreviousSquare = function(chessBoardObject) {
+		// When user clicks
+		// future me - update so only highlights on users pieces
+		// on first click of board there will be no value for prevSquareClicked, check for it:
+		if (typeof chessBoardObject.prevSquareClickedX !== "undefined") {
+			// now draw square
+			chessBoardObject.drawSquare(chessBoardObject.prevSquareClickedX, chessBoardObject.prevSquareClickedY);
+			// now just redraw the previously selected piece
+			this.drawPiece(chessBoardObject, chessBoardObject.prevSquareClickedY, chessBoardObject.prevSquareClickedX);
+		}
+	}
+
+
+	// this used to be part of drawPieces method
+	// but now this code can be reused on click events (used in drawSquare)
+	Render.prototype.drawPiece = function(chessBoardObject, row, column) {
+		switch(boardLayout[row][column]) {
+			case 'rB':  // black rook
+				var rookB = new ChessPiece('img/Black R.png', chessBoardObject, column, row);
+				break;
+			case 'nB':  // black knight
+				var knightB = new ChessPiece('img/Black N.png', chessBoardObject, column, row);
+				break;
+			case 'bB':  // black bishop
+				var bishopB = new ChessPiece('img/Black B.png', chessBoardObject, column, row);
+				break;
+			case 'qB':  // black queen
+				var queenB = new ChessPiece('img/Black Q.png', chessBoardObject, column, row);
+				break;
+			case 'kB':  // black king
+				var kingB = new ChessPiece('img/Black K.png', chessBoardObject, column, row);
+				break;
+			case 'pB':  // black pawn
+				var pawnB = new ChessPiece('img/Black P.png', chessBoardObject, column, row);
+				break;
+			case '':  // nothing
+				break; // do nothing
+			case 'pW':  // white pawn
+				var pawnW = new ChessPiece('img/White P.png', chessBoardObject, column, row);
+				break;
+			case 'rW':  // white rook
+				var rookW = new ChessPiece('img/White R.png', chessBoardObject, column, row);
+				break;
+			case 'nW':  // white knight
+				var knightW = new ChessPiece('img/White N.png', chessBoardObject, column, row);
+				break;
+			case 'bW':  // white bishop
+				var bishopW = new ChessPiece('img/White B.png', chessBoardObject, column, row);
+				break;
+			case 'qW':  // white queen
+				var queenW = new ChessPiece('img/White Q.png', chessBoardObject, column, row);
+				break;
+			case 'kW':  // white king
+				var kingW = new ChessPiece('img/White K.png', chessBoardObject, column, row);
+				break;
+			
+		default:
+			console.log('something went wrong drawing chess pieces');
+		}
 	}
 	
 
