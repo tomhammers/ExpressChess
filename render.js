@@ -76,11 +76,11 @@ var ChessBoard = function ChessBoard(canvas) {
 		// co-ord / square width rounded up = square clicked
 		this.prevSquareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
 		this.prevSquareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
-		console.log("sds  sd " + this.prevSquareClickedX + " " + this.prevSquareClickedY);
 	}
 
 	// listen for mouse clicks on the canvas
 	this.canvas.addEventListener("mousedown", this.squareClicked.bind(this), false); // need to bind "this" or the click event will become "this"!
+	// on mouse up copy square clicked so it can be redrawn on the next click
 	this.canvas.addEventListener("mouseup", this.prevSquareClicked.bind(this), false);
 };
 
@@ -130,7 +130,8 @@ var Game = function Game() {
 	// move()
 }
 
-var Render = function Render() {
+// what I will call everytime I want to draw something
+var Render = function Render(boardLayoutObject) {
 
 	// method just to call another method?
 	Render.prototype.drawBoard = function(chessBoardObject) {
@@ -170,11 +171,11 @@ var Render = function Render() {
 		}
 	}
 
-
 	// this used to be part of drawPieces method
 	// but now this code can be reused on click events (used in drawSquare)
 	Render.prototype.drawPiece = function(chessBoardObject, row, column) {
-		switch(boardLayout[row][column]) {
+		//switch(boardLayout[row][column]) {
+		switch(boardLayoutObject.boardLayout[row][column]) {
 			case 'rB':  // black rook
 				var rookB = new ChessPiece('img/Black R.png', chessBoardObject, column, row);
 				break;
@@ -217,8 +218,5 @@ var Render = function Render() {
 		default:
 			console.log('something went wrong drawing chess pieces');
 		}
-	}
-	
-
-	
+	}	
 }

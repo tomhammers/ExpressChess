@@ -1,7 +1,9 @@
 $(document).ready(function() {
 
 	var chessBoard = new ChessBoard(document.getElementById('game'));
-	var render = new Render(); // pass chessboard object to the renderer
+	var boardLayout = new BoardLayout(); // layout of the chess pieces
+	var render = new Render(boardLayout); // pass chessboard object to the renderer
+
 
 	render.drawBoard(chessBoard); // this should only need drawing as required
 	render.drawPieces(chessBoard);
@@ -15,8 +17,5 @@ $(document).ready(function() {
 		render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 		render.drawSquare(chessBoard);			// draw current selected square
 		}, false);
-
-
-
 	
 }); 
