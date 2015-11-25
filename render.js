@@ -1,26 +1,29 @@
 "use strict";
+// Responsible for drawing the chessboard and handling click events on the board
 var ChessBoard = function ChessBoard(canvas) {
 	this.canvas = canvas; 
 	this.context = this.canvas.getContext('2d');
 
-	this.canvas.width = (window.innerWidth / 100) * 40;
+	this.canvas.width = (window.innerWidth / 100) * 60;
 	this.canvas.height = this.canvas.width; // keeps everything square
 	this.width = this.canvas.width;
 	this.height = this.canvas.height;
 
 	this.rows = 8;
 	this.columns = 8;
+	
+	this.squareHeight = this.height / this.rows;
+	this.squareWidth = this.width / this.columns;
 
-	this.squareWidth = (this.width) / this.columns;
-	this.squareHeight = (this.height)  / this.rows;
+	this.canvasX; 				// x co-ordinate of a click
+	this.canvasY; 				// y co-ordinate of a click
+	this.squareClickedX;		// can use canvasX and canvas Y
+	this.squareClickedY;		// to get X and Y coords of square clicked
 
-	this.canvasX; // x co-ordinate of a click
-	this.canvasY; // y co-ordinate of a click
-	this.squareClickedX;
-	this.squareClickedY;
-
-	this.prevSquareClickedX;
-	this.prevSquareClickedY;
+	this.prevSquareClickedX;	// used after user clicks a new square ~
+	this.prevSquareClickedY;	// 				redraw the old square
+	
+	this.selectedPiece; 		// what did the user click on?
 
 	ChessBoard.prototype.drawBoard = function() {
 		for(var row = 0; row < 8; row++) {
@@ -62,21 +65,19 @@ var ChessBoard = function ChessBoard(canvas) {
 		return number == 0 || number % 2 == 0;
 	};
 
-
 	ChessBoard.prototype.squareClicked = function(event) {
 		// note the need to minus the canvas offset from the main window or we get wrong co-ords
 		this.canvasX = event.pageX - this.canvas.offsetLeft - 5; // where user clicked - canvas offset - border
 		this.canvasY = event.pageY - this.canvas.offsetTop - 5;
 		this.squareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
 		this.squareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
-	}
-
+	};
 
 	ChessBoard.prototype.prevSquareClicked = function(x, y) {
 		// co-ord / square width rounded up = square clicked
 		this.prevSquareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
 		this.prevSquareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
-	}
+	};
 
 	// listen for mouse clicks on the canvas
 	this.canvas.addEventListener("mousedown", this.squareClicked.bind(this), false); // need to bind "this" or the click event will become "this"!
@@ -113,6 +114,8 @@ var ChessPiece = function ChessPiece(pathToImage, chessBoardObject, x, y) {
 	// isMoveValid?
 
 	// each individual piece inherits?
+	
+	
 }
 
 var Square = function Square() {
@@ -132,6 +135,8 @@ var Game = function Game() {
 
 // what I will call everytime I want to draw something
 var Render = function Render(boardLayoutObject) {
+	
+	this.selectedPiece;
 
 	// method just to call another method?
 	Render.prototype.drawBoard = function(chessBoardObject) {
@@ -213,10 +218,28 @@ var Render = function Render(boardLayoutObject) {
 				break;
 			case 'kW':  // white king
 				var kingW = new ChessPiece('img/White K.png', chessBoardObject, column, row);
-				break;
-			
+				break;		
 		default:
 			console.log('something went wrong drawing chess pieces');
 		}
-	}	
+	}
+	
+	Render.prototype.getPieceClicked = function(boardLayoutObject, chessBoardObject) {
+		this.selectedPiece = boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX];
+		// only try to move piece if a prev square has been clicked
+		// if (typeof chessBoardObject.prevSquareClickedX !== "undefined" && typeof chessBoardObject.prevSquareClickedY !== "undefined") {
+		// 	this.movePiece(boardLayoutObject, chessBoardObject);
+		// }
+	};
+	
+	Render.prototype.movePiece = function(boardLayoutObject, chessBoardObject) {
+		// only can move to an empty square
+		// major rework here later!!
+		 if(boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] === "") {
+		 	boardLayoutObject.boardLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX] = "";
+		 	boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] = this.selectedPiece;
+		 }
+		// clear out selected piece ready for next move
+		 this.selectedPiece = "";
+	};	
 }

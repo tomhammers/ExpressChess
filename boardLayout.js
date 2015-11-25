@@ -10,10 +10,9 @@ var BoardLayout = function BoardLayout() {
 		['pW', 'pW', 'pW', 'pW', 'pW', 'pW', 'pW', 'pW'],
 		['rW', 'nW', 'bW', 'qW', 'kW', 'bW', 'nW', 'rW']
 	];
-
-	BoardLayout.prototype.movePiece = function(fromRow, fromColumn, toRow, toColumn, piece) {
-		this.boardLayout[fromRow][fromColumn] = "";
-		this.boardLayout[toRow][toColumn] = piece;
+	
+	BoardLayout.prototype.updateBoard = function(fromY, fromX, toY, toX) {
+		
 	}
 }
 
