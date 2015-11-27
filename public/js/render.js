@@ -1,7 +1,7 @@
 "use strict";
 // Responsible for drawing the chessboard and handling click events on the board
 var ChessBoard = function ChessBoard(canvas) {
-	this.canvas = canvas; 
+	this.canvas = canvas;
 	this.context = this.canvas.getContext('2d');
 
 	this.canvas.width = (window.innerWidth / 100) * 50;
@@ -11,7 +11,7 @@ var ChessBoard = function ChessBoard(canvas) {
 
 	this.rows = 8;
 	this.columns = 8;
-	
+
 	this.squareHeight = this.height / this.rows;
 	this.squareWidth = this.width / this.columns;
 
@@ -25,47 +25,40 @@ var ChessBoard = function ChessBoard(canvas) {
 	
 	this.selectedPiece; 		// what did the user click on?
 
-	ChessBoard.prototype.drawBoard = function() {
-		for(var row = 0; row < 8; row++) {
-			for(var column = 0; column < 8; column++) {
-
+	ChessBoard.prototype.drawBoard = function () {
+		for (var row = 0; row < 8; row++) {
+			for (var column = 0; column < 8; column++) {
 				this.drawSquare(row, column);
-
 			}
-		}	
+		}
 	};
 
 	// this was in drawBoard, this is better since this code can be reused on click events
-	ChessBoard.prototype.drawSquare = function(row, column) {
-		if(this.squareClickedX === row && this.squareClickedY === column) {
+	ChessBoard.prototype.drawSquare = function (row, column) {
+		if (this.squareClickedX === row && this.squareClickedY === column) {
 			this.colourSquare('yellow', row * this.squareWidth, column * this.squareHeight);
-		}
-		else if(this.alternativeSquare(row,column)) {
-			// only actually need to fill in alternative squares
-
-			this.colourSquare('#6d6a6a', row * this.squareWidth, column * this.squareHeight);	
-			//console.log(this.canvasX);
-		}
-		else {
-			this.colourSquare('white', row * this.squareWidth, column * this.squareHeight);	
+		} else if (this.alternativeSquare(row, column)) {
+			this.colourSquare('#6d6a6a', row * this.squareWidth, column * this.squareHeight);
+		} else {
+			this.colourSquare('white', row * this.squareWidth, column * this.squareHeight);
 		}
 	}
 
-	ChessBoard.prototype.colourSquare = function(colour, x, y) {
+	ChessBoard.prototype.colourSquare = function (colour, x, y) {
 		this.context.fillStyle = colour;
 		this.context.fillRect(x, y, this.squareWidth, this.squareHeight)
 	};
 
-	ChessBoard.prototype.alternativeSquare = function(row, column) {
+	ChessBoard.prototype.alternativeSquare = function (row, column) {
 		return (this.checkIfEven(row) && !this.checkIfEven(column)) || // even row, odd column OR
             (!this.checkIfEven(row) && this.checkIfEven(column)) // odd row, even column
 	};
 
-	ChessBoard.prototype.checkIfEven = function(number) {
+	ChessBoard.prototype.checkIfEven = function (number) {
 		return number == 0 || number % 2 == 0;
 	};
 
-	ChessBoard.prototype.squareClicked = function(event) {
+	ChessBoard.prototype.squareClicked = function (event) {
 		// note the need to minus the canvas offset from the main window or we get wrong co-ords
 		this.canvasX = event.pageX - this.canvas.offsetLeft - 5; // where user clicked - canvas offset - border
 		this.canvasY = event.pageY - this.canvas.offsetTop - 5;
@@ -73,7 +66,7 @@ var ChessBoard = function ChessBoard(canvas) {
 		this.squareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
 	};
 
-	ChessBoard.prototype.prevSquareClicked = function(x, y) {
+	ChessBoard.prototype.prevSquareClicked = function (x, y) {
 		// co-ord / square width rounded up = square clicked
 		this.prevSquareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
 		this.prevSquareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
@@ -87,7 +80,7 @@ var ChessBoard = function ChessBoard(canvas) {
 
 // Attributes of a chess piece image
 var ChessPieceImage = function ChessPieceImage(pathToImage, chessBoardObject, x, y) {
-	
+
 	this.pieceImage = new Image();
 	// ChessPiece takes up 94% of available square, I've done this to keep my chessboard responsive
 	this.imageWidth = (chessBoardObject.squareWidth / 100) * 94;
@@ -102,64 +95,47 @@ var ChessPieceImage = function ChessPieceImage(pathToImage, chessBoardObject, x,
 	// x === to the index in the row for loop in the Render object which is passed to this method
 	// y === to the index in the column for loop in the Render object which is passed to this method
 	// multiplying x or y by the squareWidth/height should give the correct x and y coordinates
-	ChessPieceImage.prototype.drawPiece = function() {
+	ChessPieceImage.prototype.drawPiece = function () {
 		chessBoardObject.context.drawImage(this.pieceImage, (x * chessBoardObject.squareWidth) + this.xMargin, // x co-ordinate
-															(y * chessBoardObject.squareHeight) + this.yMargin, // y co-ordinate
-		 													this.imageWidth, this.imageHeight);	 // image width + height defined above
+			(y * chessBoardObject.squareHeight) + this.yMargin, // y co-ordinate
+			this.imageWidth, this.imageHeight);	 // image width + height defined above
 	}
 	this.pieceImage.src = pathToImage;
 	// Check image has been loaded before trying to draw it	
-	this.pieceImage.addEventListener('load', this.drawPiece.bind(this) , false);
-	
-}
+	this.pieceImage.addEventListener('load', this.drawPiece.bind(this), false);
 
-var Square = function Square() {
-	// Piece object
-	//Square(piece)
-}
-
-var Game = function Game() {
-	// Player object, we need 2 (black and white)
-	// ChessBoard object?
-
-	// methods
-	// gameOver()
-	// getPiece()
-	// move()
 }
 
 // what I will call everytime I want to draw something
 var Render = function Render(boardLayoutObject) {
-	
+
 	this.selectedPiece;
 
 	// method just to call another method?
-	Render.prototype.drawBoard = function(chessBoardObject) {
+	Render.prototype.drawBoard = function (chessBoardObject) {
 		chessBoardObject.drawBoard();
 	}
 
 	// Draw everything in the global boardLayout array
-	Render.prototype.drawPieces = function(chessBoardObject) {
+	Render.prototype.drawPieces = function (chessBoardObject) {
 		// pass the chessboard object so we know where to place the pieces
-		for(var row = 0; row < 8; row++) {
-			for(var column = 0; column < 8; column++) {
+		for (var row = 0; row < 8; row++) {
+			for (var column = 0; column < 8; column++) {
 				this.drawPiece(chessBoardObject, row, column);
 			}
 		}
 	}
 
-	// not currently used
-	Render.prototype.drawSquare = function(chessBoardObject) {
+	Render.prototype.drawSquare = function (chessBoardObject) {
 		// firstly highlight the square the user clicked on
 		// future me - update so only highlights on users pieces
 		chessBoardObject.drawSquare(chessBoardObject.squareClickedX, chessBoardObject.squareClickedY);
 
 		// now just redraw the selected piece
-		this.drawPiece(chessBoardObject, chessBoardObject.squareClickedY, chessBoardObject.squareClickedX);	
+		this.drawPiece(chessBoardObject, chessBoardObject.squareClickedY, chessBoardObject.squareClickedX);
 	}
 
-	// not currently used
-	Render.prototype.drawPreviousSquare = function(chessBoardObject) {
+	Render.prototype.drawPreviousSquare = function (chessBoardObject) {
 		// When user clicks
 		// future me - update so only highlights on users pieces
 		// on first click of board there will be no value for prevSquareClicked, check for it:
@@ -173,9 +149,9 @@ var Render = function Render(boardLayoutObject) {
 
 	// this used to be part of drawPieces method
 	// but now this code can be reused on click events (used in drawSquare)
-	Render.prototype.drawPiece = function(chessBoardObject, row, column) {
+	Render.prototype.drawPiece = function (chessBoardObject, row, column) {
 		// take advantage of the "fallthrough" feature in js switch case to draw the piece
-		switch(boardLayoutObject.boardLayout[row][column]) {
+		switch (boardLayoutObject.boardLayout[row][column]) {
 			case boardLayoutObject.rookB1:  	// black rook1
 			case boardLayoutObject.rookB2:  	// black rook2
 				var rookB = new ChessPieceImage('img/Black R.png', chessBoardObject, column, row);
@@ -233,28 +209,41 @@ var Render = function Render(boardLayoutObject) {
 				break;
 			case boardLayoutObject.kingW1:  	// white king
 				var kingW = new ChessPieceImage('img/White K.png', chessBoardObject, column, row);
-				break;		
-		default:
-			console.log('something went wrong drawing chess pieces');
+				break;
+			default:
+				console.log('something went wrong drawing chess pieces');
 		}
 	}
-	
-	Render.prototype.getPieceClicked = function(boardLayoutObject, chessBoardObject) {
-		this.selectedPiece = boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX];
+
+	Render.prototype.getPieceClicked = function (boardLayoutObject, chessBoardObject) {
+		if (boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] !== null) {
+			this.selectedPiece = boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX];
+			console.log(this.selectedPiece);
+		} else {
+			this.selectedPiece = null;
+		}
 		// only try to move piece if a prev square has been clicked
 		// if (typeof chessBoardObject.prevSquareClickedX !== "undefined" && typeof chessBoardObject.prevSquareClickedY !== "undefined") {
 		// 	this.movePiece(boardLayoutObject, chessBoardObject);
 		// }
 	};
 	
-	Render.prototype.movePiece = function(boardLayoutObject, chessBoardObject) {
+	
+
+	Render.prototype.movePiece = function (boardLayoutObject, chessBoardObject) {
 		// only can move to an empty square
 		// major rework here later!!
-		 if(boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] === null) {
-		 	boardLayoutObject.boardLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX] = "";
-		 	boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] = this.selectedPiece;
-		 }
+		if (boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] === null) {
+			boardLayoutObject.boardLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX] = null;
+			boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] = this.selectedPiece;
+		}
 		// clear out selected piece ready for next move
-		 this.selectedPiece = "";
-	};	
+		this.selectedPiece = "";
+	};
+	
+	Render.prototype.endMove = function (chessBoardObject) {
+		chessBoardObject.prevprevSquareClickedX = "undefined";
+		chessBoardObject.prevprevSquareClickedY = "undefined";
+		this.drawSquare(chessBoardObject);
+	}
 }
