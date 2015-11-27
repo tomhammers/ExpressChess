@@ -1,34 +1,23 @@
 var express = require('express');
-var http = require('http');
-// build the app
 var app = express();
+var http = require('http').Server(app);
 
+// declare new instance of socket.io by passing the http server object
+var io = require('socket.io')(http);
 
-//middleware
-app.all("*", function(request, response, next) {
-  response.writeHead(200, { "Content-Type": "text/plain" });
-  next();
+// tell express to serve up the "stuff" in the public directory
+app.use(express.static('public'));
+
+io.on('connection', function(socket){
+  console.log('a user connected');
+  socket.on('disconnect', function(){
+    console.log('user disconnected');
+  });
 });
 
-app.get("/", function(request, response) {
-  response.end("Welcome to the homepage!");
+var port = 3000;
+
+http.listen(port, function() {
+    console.log('listening on: ' + port);
 });
-
-app.get("/about", function(request, response) {
-  response.end("Welcome to the about page!");
-});
-
-app.get("*", function(request, response) {
-  response.end("404!");
-});
-// app.get('/', function(req, res){
-//   res.send('<b>Hello</b> World');
-//   console.log("Hello");
-// });
-
-// start everything up
-http.createServer(app).listen(1337);
-// shorthand for above
-//app.listen(3000);
-
 
