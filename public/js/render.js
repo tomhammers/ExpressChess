@@ -78,7 +78,7 @@ var ChessBoard = function ChessBoard(canvas) {
 	this.canvas.addEventListener("mouseup", this.prevSquareClicked.bind(this), false);
 };
 
-// Attributes of a chess piece image
+// Attributes of a chess piece image and a method to draw a chess piece
 var ChessPieceImage = function ChessPieceImage(pathToImage, chessBoardObject, x, y) {
 
 	this.pieceImage = new Image();
@@ -125,29 +125,8 @@ var Render = function Render(boardLayoutObject) {
 			}
 		}
 	}
-
-	Render.prototype.drawSquare = function (chessBoardObject) {
-		// firstly highlight the square the user clicked on
-		// future me - update so only highlights on users pieces
-		chessBoardObject.drawSquare(chessBoardObject.squareClickedX, chessBoardObject.squareClickedY);
-
-		// now just redraw the selected piece
-		this.drawPiece(chessBoardObject, chessBoardObject.squareClickedY, chessBoardObject.squareClickedX);
-	}
-
-	Render.prototype.drawPreviousSquare = function (chessBoardObject) {
-		// When user clicks
-		// future me - update so only highlights on users pieces
-		// on first click of board there will be no value for prevSquareClicked, check for it:
-		if (typeof chessBoardObject.prevSquareClickedX !== "undefined") {
-			// now draw square
-			chessBoardObject.drawSquare(chessBoardObject.prevSquareClickedX, chessBoardObject.prevSquareClickedY);
-			// now just redraw the previously selected piece
-			this.drawPiece(chessBoardObject, chessBoardObject.prevSquareClickedY, chessBoardObject.prevSquareClickedX);
-		}
-	}
-
-	// this used to be part of drawPieces method
+	
+	// this code used to be part of drawPieces method
 	// but now this code can be reused on click events (used in drawSquare)
 	Render.prototype.drawPiece = function (chessBoardObject, row, column) {
 		// take advantage of the "fallthrough" feature in js switch case to draw the piece
@@ -211,21 +190,49 @@ var Render = function Render(boardLayoutObject) {
 				var kingW = new ChessPieceImage('img/White K.png', chessBoardObject, column, row);
 				break;
 			default:
+				// I hope this never happens
 				console.log('something went wrong drawing chess pieces');
 		}
 	}
 
-	Render.prototype.getPieceClicked = function (boardLayoutObject, chessBoardObject) {
-		if (boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] !== null) {
-			this.selectedPiece = boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX];
-			console.log(this.selectedPiece);
-		} else {
-			this.selectedPiece = null;
+	Render.prototype.drawSquare = function (chessBoardObject) {
+		// firstly highlight the square the user clicked on
+		// future me - update so only highlights on users pieces
+		chessBoardObject.drawSquare(chessBoardObject.squareClickedX, chessBoardObject.squareClickedY);
+
+		// now just redraw the selected piece
+		this.drawPiece(chessBoardObject, chessBoardObject.squareClickedY, chessBoardObject.squareClickedX);
+	}
+
+	Render.prototype.drawPreviousSquare = function (chessBoardObject) {
+		// When user clicks
+		// future me - update so only highlights on users pieces
+		// on first click of move there will be no value for prevSquareClicked, check for it:
+		if (typeof chessBoardObject.prevSquareClickedX !== "undefined") {
+			// now draw square
+			chessBoardObject.drawSquare(chessBoardObject.prevSquareClickedX, chessBoardObject.prevSquareClickedY);
+			// now just redraw the previously selected piece
+			this.drawPiece(chessBoardObject, chessBoardObject.prevSquareClickedY, chessBoardObject.prevSquareClickedX);
 		}
+	}
+
+	
+
+	Render.prototype.getPieceClicked = function (boardLayoutObject, chessBoardObject) {
+		// if (boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] !== null) {
+		// 	this.selectedPiece = boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX];
+		// 	console.log(this.selectedPiece);
+		// } else {
+		// 	this.selectedPiece = null;
+		// }
 		// only try to move piece if a prev square has been clicked
 		// if (typeof chessBoardObject.prevSquareClickedX !== "undefined" && typeof chessBoardObject.prevSquareClickedY !== "undefined") {
 		// 	this.movePiece(boardLayoutObject, chessBoardObject);
 		// }
+		
+		this.selectedPiece = boardLayoutObject.boardLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX];
+			
+		
 	};
 	
 	
@@ -236,14 +243,15 @@ var Render = function Render(boardLayoutObject) {
 		if (boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] === null) {
 			boardLayoutObject.boardLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX] = null;
 			boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] = this.selectedPiece;
-		}
+			console.log(boardLayoutObject.boardLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX]);
+		} 
 		// clear out selected piece ready for next move
 		this.selectedPiece = "";
 	};
 	
 	Render.prototype.endMove = function (chessBoardObject) {
-		chessBoardObject.prevprevSquareClickedX = "undefined";
-		chessBoardObject.prevprevSquareClickedY = "undefined";
-		this.drawSquare(chessBoardObject);
+		// chessBoardObject.prevprevSquareClickedX = "undefined";
+		// chessBoardObject.prevprevSquareClickedY = "undefined";
+		// this.drawSquare(chessBoardObject);
 	}
 }

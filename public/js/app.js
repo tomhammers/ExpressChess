@@ -14,35 +14,52 @@ $(document).ready(function () {
 	// This one redraws the squares, chess pieces need to be redrawn too,
 	// otherwise the chess piece disappears!
 	chessBoard.canvas.addEventListener("mousedown", function () {
+		// need to check prev square has been clicked before doing anything
 		if (typeof chessBoard.prevSquareClickedX !== "undefined" && typeof chessBoard.prevSquareClickedY !== "undefined") {
 			render.movePiece(boardLayout, chessBoard);
-			// send the move to the server
 			
 			render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 			render.drawSquare(chessBoard);			// draw current selected square
-			render.endMove(chessBoard);
-		}
-		socket.emit('piece move', {
-				prevSqClickedX: chessBoard.prevSquareClickedX,
-				prevSqClickedY: chessBoard.prevSquareClickedY,
+			//render.endMove(chessBoard);
+			
+			// send the move to the server
+			socket.emit('piece move', {
 				sqClickedX: chessBoard.squareClickedX, 
-				sqClickedY: chessBoard.squareClickedY
+				sqClickedY: chessBoard.squareClickedY,
+				prevSqClickedX: chessBoard.prevSquareClickedX,
+				prevSqClickedY: chessBoard.prevSquareClickedY
+				
 			});
-		
-		render.drawSquare(chessBoard);			// draw current selected square
+		} else {
+			// only draw current selected square if no previous clicks
+			render.drawSquare(chessBoard);			
+		}
+	}, false);
+	
+	chessBoard.canvas.addEventListener("mouseup", function () {
+		if (typeof chessBoard.prevSquareClickedX !== "undefined" && typeof chessBoard.prevSquareClickedY !== "undefined") {
+			socket.emit('piece move', {
+				sqClickedX: chessBoard.squareClickedX, 
+				sqClickedY: chessBoard.squareClickedY,
+				prevSqClickedX: chessBoard.prevSquareClickedX,
+				prevSqClickedY: chessBoard.prevSquareClickedY
+				
+			});
+		}
 	}, false);
 	
 	// listening for server to send oppenents move
 	socket.on('piece move', function(data){
+
    		 	console.log(data);
 			chessBoard.squareClickedX = data.sqClickedX;	
 			chessBoard.squareClickedY = data.sqClickedY;
 			chessBoard.prevSquareClickedX = data.prevSqClickedX;	
 			chessBoard.prevSquareClickedY = data.prevSqClickedY;
-			
+			console.log(chessBoard);
 			
 			render.movePiece(boardLayout, chessBoard);
-			render.getPieceClicked(boardLayout, chessBoard);
+			//render.getPieceClicked(boardLayout, chessBoard);
 			render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 			render.drawSquare(chessBoard);	
 		
