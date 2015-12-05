@@ -65,6 +65,14 @@ var BoardLayout = function BoardLayout() {
 		[this.pawnW1, this.pawnW2, this.pawnW3, this.pawnW4, this.pawnW5, this.pawnW6, this.pawnW7, this.pawnW8],
 		[this.rookW1, this.knightW1, this.bishopW1, this.queenW1, this.kingW1, this.bishopW2, this.knightW2, this.rookW2]
 	];
+	
+	BoardLayout.prototype.getPiece = function(piece) {
+		var pieceLookUp = {
+			
+		}
+		
+	}
+	
 
 	BoardLayout.prototype.updateBoard = function(fromY, fromX, toY, toX) {
 		
