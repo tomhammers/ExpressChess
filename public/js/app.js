@@ -13,7 +13,7 @@ $(document).ready(function () {
 	// out where on the chessboard the user clicked.........
 
 	// This one redraws the squares, chess pieces need to be redrawn too,
-	// otherwise the chess piece disappears!
+	// otherwise the chess piece disappears visually
 	chessBoard.canvas.addEventListener("mousedown", function () {
 		if (player.turn === true) {
 			// need to check prev square has been clicked before doing anything
@@ -62,7 +62,7 @@ $(document).ready(function () {
 			//render.getPieceClicked(boardLayout, chessBoard);
 			render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 			render.drawSquare(chessBoard);	
-			render.endMove(chessBoard);
+			//render.endMove(chessBoard);
 			//render.drawPiece(chessBoard, chessBoard.squareClickedY, chessBoard.squareClickedX);
 			//player.turn = true;
   	});
