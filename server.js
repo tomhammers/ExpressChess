@@ -4,6 +4,10 @@ var routes = require('./routes');
 var http = require('http').Server(app);
 // declare new instance of socket.io by passing the http server object
 var io = require('socket.io')(http);
+var Moniker = require('moniker');
+var names = Moniker.generator([Moniker.adjective]);
+var player1 = undefined;
+var player2 = undefined;
 
 // set the "view" using ejs template engine
 app.set('view engine', 'ejs');
@@ -13,7 +17,7 @@ app.use(express.static('public'));
 
 // routes have been defined in the routes directory
 app.get('/', routes.index);     // default directory
-app.get('/game', routes.game);
+//app.get('/game', routes.game);
 
 var clients = [];
 
@@ -22,7 +26,10 @@ var clients = [];
 
 io.on('connection', function (socket) {
   var clientCount = io.engine.clientsCount;
-  console.log(socket.id + ' connected');
+ 
+  socket.nickname = names.choose(); // moniker randomly chooses
+  //nicknames.push(socket.nickname);
+  console.log(socket.id + " " + socket.nickname + ' connected');
   console.log(clientCount + ' users connected');
   clients.push(socket);
   
@@ -41,12 +48,14 @@ io.on('connection', function (socket) {
   // server listening for user moves
   socket.on('piece move', function (data) {
     // send move to all connected clients
-    io.emit('piece move', data);
+    socket.broadcast.emit('piece move', data);
   });
 });
 
 var port = 3000;
 http.listen(port, function () {
   console.log('listening on: ' + port);
+  //console.log(Moniker.choose());
+  console.log(names.choose());
 });
 

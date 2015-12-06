@@ -6,6 +6,7 @@ $(document).ready(function () {
 	var player = new Player();
 
 
+
 	render.drawBoard(chessBoard); // this should only need drawing as required
 	render.drawPieces(chessBoard);
 
@@ -22,7 +23,7 @@ $(document).ready(function () {
 				render.movePiece(boardLayout, chessBoard);
 				render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 				render.drawSquare(chessBoard);			// draw current selected square
-				
+				console.log("hi");
 				// send the move to the server
 				socket.emit('piece move', {
 					sqClickedX: chessBoard.squareClickedX, 
@@ -62,6 +63,7 @@ $(document).ready(function () {
 			//render.getPieceClicked(boardLayout, chessBoard);
 			render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 			render.drawSquare(chessBoard);	
+			console.log("got move from server");
 			//render.endMove(chessBoard);
 			//render.drawPiece(chessBoard, chessBoard.squareClickedY, chessBoard.squareClickedX);
 			//player.turn = true;
