@@ -55,7 +55,7 @@ var BoardLayout = function BoardLayout() {
 	this.knightW2 = 	new ChessPiece("nW2", "knight", "white", 6, 7);		// knight white 2
 	this.rookW2 = 		new ChessPiece("rW2", "rook", "white", 7, 7);		// rook white 2
 	
-	this.boardLayout = [
+	this.pieceLayout = [
 		[this.rookB1, this.knightB1, this.bishopB1, this.queenB1, this.kingB1, this.bishopB2, this.knightB2, this.rookB2],
 		[this.pawnB1, this.pawnB2, this.pawnB3, this.pawnB4, this.pawnB5, this.pawnB6, this.pawnB7, this.pawnB8],
 		[null, null, null, null, null, null, null, null],

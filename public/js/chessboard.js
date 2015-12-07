@@ -66,16 +66,6 @@ var ChessBoard = function ChessBoard(canvas) {
 		this.squareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
 	};
 
-	ChessBoard.prototype.prevSquareClicked = function (x, y) {
-		// co-ord / square width rounded up = square clicked
-		this.prevSquareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
-		this.prevSquareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
-	};
-
-	// listen for mouse clicks on the canvas
-	this.canvas.addEventListener("mousedown", this.squareClicked.bind(this), false); // need to bind "this" or the click event will become "this"!
-	// on mouse up copy square clicked so it can be redrawn on the next click
-	this.canvas.addEventListener("mouseup", this.prevSquareClicked.bind(this), false);
 };
 
 // Attributes of a chess piece image and a method to draw a chess piece
