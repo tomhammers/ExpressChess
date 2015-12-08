@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<% include partials/head.ejs %>
+</head>
+
+<body>
+	<header>
+		<% include partials/header.ejs %>
+	</header>
+
+	<div class="modal fade" tabindex="-1" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">New Game</h4>
+				</div>
+				<div class="modal-body">
+					<div id="serverMessages"></div>
+				</div>
+				<div class="modal-footer">
+					<!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary">Save changes</button>-->
+				</div>
+			</div>
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+	<!-- /.modal -->
+
+	<div class="container">
+		<div class="row">
+			<canvas id="game" resize="true"> </canvas>
+		</div>
+		<!--row-->
+
+	</div>
+	<!-- container -->
+
+	<footer>
+		<% include partials/footer.ejs %>
+	</footer>
+	<% include partials/jsdefaults.ejs %>
+
+</body>
+
+</html>

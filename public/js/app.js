@@ -9,16 +9,19 @@ $(document).ready(function () {
 	var render = new Render(boardLayout); // pass chessboard object to the renderer
 	var player = new Player();
 	var modalBody = document.getElementById('serverMessages');
+	var roomID = "";
 
 	socket.on('new game', function (data) {
 		$('.modal').modal('show');
 		modalBody.innerHTML += "Hello Player " + data.player + ", here is your nickname: <b>" + data.nickname + "</b></br>";
 		modalBody.innerHTML += "You are playing as <b>" + data.colour + "</b></br>";
 		modalBody.innerHTML += "Send this URL to a friend: <b>" + data.shareURL + "</b></br>";
-		modalBody.innerHTML += data.room;
-		console.log(data.room);
-		socket.emit('join room', {room: data.room});
-		player.turn = true;
+		
+		// socket.emit('join room', {
+		// 	room: roomID
+		// });
+		player.turn = data.turn;
+		roomID = data.room
 	});
 
 	render.drawBoard(chessBoard); // this should only need drawing as required
@@ -43,7 +46,8 @@ $(document).ready(function () {
 					prevSqClickedX: chessBoard.prevSquareClickedX,
 					prevSqClickedY: chessBoard.prevSquareClickedY,
 					pieceToMove: render.selectedPiece,
-					move: boardLayout
+					move: boardLayout,
+					room: roomID
 				});
 
 				render.endMove(chessBoard);

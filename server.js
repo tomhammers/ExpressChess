@@ -16,7 +16,7 @@ var roomID = "";
 var chessURL = ""; // url that player 1 will need to send to player 2
 
 // generates a string of characters for the new game room
-function generateChessRoom(length) {
+function generateChessRoomID(length) {
 		var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 		var room = '';
 		for (var i = 0; i < length; i++) {
@@ -24,6 +24,8 @@ function generateChessRoom(length) {
 		}
 		return room;
 };
+
+
   
 // set the "view" using ejs template engine
 app.set('view engine', 'ejs');
@@ -31,15 +33,21 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
-  chessURL = req.protocol + '://' + req.get('host') + req.path;
+   // generate roomID on this route
+  roomID = generateChessRoomID(6);
+  chessURL = req.protocol + '://' + req.get('host') + req.path + roomID;
+ 
   res.render('default', {
     title: 'ExpressChess'
   });
 });
 
-// user can access any url ending with 6 chars, however to play with friend it has to be right combo
+// this route only allows a regex containing alphanumeric string only
 app.get('/:room([A-Za-z0-9]{6})', function (req, res) {
+  chessURL = req.protocol + '://' + req.get('host') + req.path;
   chessURL += req.url;
+  // get roomID from URL on this route
+  roomID = req.params.room;
   res.render('default', {
     title: 'ExpressChess'
   });
@@ -48,43 +56,43 @@ app.get('/:room([A-Za-z0-9]{6})', function (req, res) {
 io.on('connection', function (socket) {
   var clientCount = io.engine.clientsCount;
   socket.nickname = names.choose(); // moniker randomly chooses
-  
-  if (clientCount === 1) { // start a new game!
-    roomID = generateChessRoom(6);
-    chessURL += roomID // I hope this will be a scoket room, accessed via url
+
+  //room does not exist, create it and set game up as player 1
+  if (rooms.indexOf(roomID) === -1) {
+    rooms.push(roomID);
+    console.log("added room " + roomID + " to the array");
+    socket.join(roomID);
+    // now send player 1 game info
     socket.emit('new game', {
       room: roomID,
       shareURL: chessURL,
       player: 1,
       nickname: socket.nickname,
-      colour: "white"
+      colour: "white",
+      turn: true
     });
-  }
-
-  if (clientCount === 2) {
+  } else { // room must exist, join!
+    socket.join(roomID);
     socket.emit('new game', {
       room: roomID,
       shareURL: chessURL,
       player: 2,
       nickname: socket.nickname,
-      colour: "black"
-    });
-  }
-  
-  if (clientCount > 2) {
-    // spectate - worry about it later!
-    socket.emit('new game', {
-      room: roomID,
-      shareURL: chessURL,
-      player: 2,
-      nickname: socket.nickname,
-      colour: "black"
+      colour: "black",
+      turn: false
     });
   }
   
   // players who use same link should connect to a specific room
-  socket.on('join room', function(data) {
+  socket.on('join room', function (data) {
     socket.join(data.room);
+  });
+
+
+  socket.on('piece move', function (data) {
+    // send move to users in room
+    // client sends roomID
+    socket.broadcast.to(data.room).emit('piece move', data);
   });
   
   //nicknames.push(socket.nickname);
@@ -105,18 +113,12 @@ io.on('connection', function (socket) {
 
   });
   // server listening for user moves
-  
-  socket.on('piece move', function (data) {
-    // send move to all connected clients
-    //socket.broadcast.emit('piece move', data);
-    socket.broadcast.to(roomID).emit('piece move', data);
-  });
+
 });
 
 var port = 3000;
 http.listen(port, function () {
   console.log('listening on: ' + port);
-  //console.log(Moniker.choose());
   console.log(names.choose());
 });
 
