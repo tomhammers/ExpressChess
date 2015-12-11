@@ -15,15 +15,17 @@ var ChessBoard = function ChessBoard(canvas) {
 	this.squareHeight = this.height / this.rows;
 	this.squareWidth = this.width / this.columns;
 
-	this.canvasX; 				// x co-ordinate of a click
-	this.canvasY; 				// y co-ordinate of a click
-	this.squareClickedX;		// can use canvasX and canvas Y
-	this.squareClickedY;		// to get X and Y coords of square clicked
+	this.canvasX = 0; 				// x co-ordinate of a click
+	this.canvasY = 0; 				// y co-ordinate of a click
+	this.squareClickedX = -1;		// can use canvasX and canvas Y
+	this.squareClickedY = -1;		// to get X and Y coords of square clicked
 
-	this.prevSquareClickedX;	// used after user clicks a new square ~
-	this.prevSquareClickedY;	// 				redraw the old square
+	this.prevSquareClickedX = -1;	// used after user clicks a new square ~
+	this.prevSquareClickedY = -1;	// 				redraw the old square
 	
 	this.selectedPiece; 		// what did the user click on?
+	
+	this.validFirstClick = false;
 
 	ChessBoard.prototype.drawBoard = function () {
 		for (var row = 0; row < 8; row++) {
@@ -65,6 +67,23 @@ var ChessBoard = function ChessBoard(canvas) {
 		this.squareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
 		this.squareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
 	};
+	
+	// has the player clicked on their own piece on the FIRST click?
+	ChessBoard.prototype.validClick = function (boardLayout, playerColour) {
+		if(boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX]!== null) {
+			if(boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX].color === playerColour) {
+				return true;
+			}
+		}
+	};
+	
+	// check second click is either on null square or oppenent colour
+	ChessBoard.prototype.checkSecondClick = function(boardLayout, playerColour) {
+		if(boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX]!== playerColour) {
+			return true;
+		}
+		
+	}
 
 };
 

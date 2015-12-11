@@ -140,5 +140,6 @@ var Render = function Render(boardLayoutObject) {
 		chessBoardObject.prevSquareClickedY = -1;
 		chessBoardObject.squareClickedX = -1;
 		chessBoardObject.squareClickedY = -1;
+		chessBoardObject.validFirstClick = false;
 	}
 }

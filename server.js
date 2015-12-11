@@ -5,7 +5,6 @@ var url = require('url');
 // declare new instance of socket.io by passing the http server object
 var io = require('socket.io')(http);
 
-var uuid = require('node-uuid');  // generate url
 var Moniker = require('moniker'); // generates nicknames
 var names = Moniker.generator([Moniker.adjective]);
 var clients = [];
@@ -20,29 +19,28 @@ function generateChessRoomID(length) {
 		var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 		var room = '';
 		for (var i = 0; i < length; i++) {
-    room += chars.charAt(Math.floor(Math.random() * 62));
+      // will admit to google for this part!
+      room += chars.charAt(Math.floor(Math.random() * 62));
 		}
 		return room;
 };
-
-
-  
+ 
 // set the "view" using ejs template engine
 app.set('view engine', 'ejs');
 // tell express to serve static files in public
 app.use(express.static('public'));
 
 app.get('/', function (req, res) {
-   // generate roomID on this route
+  // generate roomID on this route
   roomID = generateChessRoomID(6);
   chessURL = req.protocol + '://' + req.get('host') + req.path + roomID;
- 
+
   res.render('default', {
     title: 'ExpressChess'
   });
 });
 
-// this route only allows a regex containing alphanumeric string only
+// this route only allows a regex containing 6 alphanumeric chars only
 app.get('/:room([A-Za-z0-9]{6})', function (req, res) {
   chessURL = req.protocol + '://' + req.get('host') + req.path;
   chessURL += req.url;
@@ -71,7 +69,9 @@ io.on('connection', function (socket) {
       colour: "white",
       turn: true
     });
-  } else { // room must exist, join!
+  // else room already exists, we will assume player 2 but not perfect solution
+  // FIX - THIRD OR MORE PERSON IN LOBBY IS ALSO "Player 2"
+  } else { 
     socket.join(roomID);
     socket.emit('new game', {
       room: roomID,
@@ -87,7 +87,6 @@ io.on('connection', function (socket) {
   socket.on('join room', function (data) {
     socket.join(data.room);
   });
-
 
   socket.on('piece move', function (data) {
     // send move to users in room
@@ -110,10 +109,7 @@ io.on('connection', function (socket) {
       clients.splice(index, 1);
       console.info('Client gone (id=' + socket.id + ').');
     }
-
   });
-  // server listening for user moves
-
 });
 
 var port = 3000;

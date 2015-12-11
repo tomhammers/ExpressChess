@@ -10,6 +10,9 @@ $(document).ready(function () {
 	var player = new Player();
 	var modalBody = document.getElementById('serverMessages');
 	var roomID = "";
+	
+	render.drawBoard(chessBoard); // this should only need drawing as required
+	render.drawPieces(chessBoard);
 
 	socket.on('new game', function (data) {
 		$('.modal').modal('show');
@@ -17,22 +20,19 @@ $(document).ready(function () {
 		modalBody.innerHTML += "You are playing as <b>" + data.colour + "</b></br>";
 		modalBody.innerHTML += "Send this URL to a friend: <b>" + data.shareURL + "</b></br>";
 		
-		// socket.emit('join room', {
-		// 	room: roomID
-		// });
+		// server decides whos turn and what colour pieces
 		player.turn = data.turn;
+		player.colourPieces = data.colour;
 		roomID = data.room
 	});
 
-	render.drawBoard(chessBoard); // this should only need drawing as required
-	render.drawPieces(chessBoard);
-
 	chessBoard.canvas.addEventListener("mousedown", function () {
+		// only do something with the click event if its the players turn
 		if (player.turn === true) {
 			chessBoard.squareClicked(event); // work out where the user clicked
-			
-			
-			if (chessBoard.prevSquareClickedX > -1 && chessBoard.prevSquareClickedY > -1) {
+			// only attempt move if a previous square has been clicked
+			if (chessBoard.validFirstClick) {
+				// check second click 
 				// now move the piece from prev square clicked to current square clicked in the data structure
 				render.movePiece(boardLayout, chessBoard);
 				player.turn = false;
@@ -53,13 +53,26 @@ $(document).ready(function () {
 				render.endMove(chessBoard);
 
 			} else {
+				
 				// only draw current selected square if no previous clicks (will just highlight square)
-				render.drawSquare(chessBoard, player.turn);
+				if (chessBoard.validClick(boardLayout, player.colourPieces)) {
+					chessBoard.validFirstClick = true;
+					render.drawSquare(chessBoard, player.turn);
+				} else { // not a valid click, remove click co-ords before mouseup grabs them
+					chessBoard.validFirstClick = false;
+				}	
 			}
-
 		}
 	}, false);
 	
+	//get piece clicked on mouse up so it can be used on next mouse click
+	chessBoard.canvas.addEventListener("mouseup", function () {
+		if (player.turn === true) {
+			chessBoard.prevSquareClickedX = Math.ceil(chessBoard.canvasX / chessBoard.squareWidth) - 1; // -1 to count from 0
+			chessBoard.prevSquareClickedY = Math.ceil(chessBoard.canvasY / chessBoard.squareHeight) - 1;
+			render.getPieceClicked(boardLayout, chessBoard);
+		}
+	}, false);
 	
 	// listening for server to send oppenents move
 	socket.on('piece move', function (data) {
@@ -70,29 +83,11 @@ $(document).ready(function () {
 		chessBoard.prevSquareClickedY = data.prevSqClickedY;
 		render.selectedPiece = data.pieceToMove;
 			
-		// update boardlayout object
-		// boardLayout = data.move;
-		// render.drawBoard(chessBoard); // this should only need drawing as required
-		// render.drawPieces(chessBoard);
-			
 		render.movePiece(boardLayout, chessBoard);
-		//render.getPieceClicked(boardLayout, chessBoard);
 		render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 		render.drawSquare(chessBoard);
 		console.log("got move from server");
 		player.turn = true;
 		render.endMove(chessBoard);
-		//render.drawPiece(chessBoard, chessBoard.squareClickedY, chessBoard.squareClickedX);
-		//player.turn = true;
 	});
-		  
-	//get piece clicked on mouse up so it can be used on next mouse click
-	chessBoard.canvas.addEventListener("mouseup", function () {
-		if (player.turn === true) {
-			chessBoard.prevSquareClickedX = Math.ceil(chessBoard.canvasX / chessBoard.squareWidth) - 1; // -1 to count from 0
-			chessBoard.prevSquareClickedY = Math.ceil(chessBoard.canvasY / chessBoard.squareHeight) - 1;
-			render.getPieceClicked(boardLayout, chessBoard);
-		}
-	}, false);
-
 }); 
