@@ -90,56 +90,23 @@ var Render = function Render(boardLayoutObject) {
 		}
 	}
 
-	Render.prototype.drawSquare = function (chessBoardObject, isPlayerTurn) {
-		// firstly highlight the square the user clicked on
-		// future me - update so only highlights on users pieces
-		// only highlight if move has not ended
-		if (isPlayerTurn) {
-			chessBoardObject.drawSquare(chessBoardObject.squareClickedX, chessBoardObject.squareClickedY);
-		}
-
+	Render.prototype.drawSquare = function (chessBoardObject) {
+	
+		chessBoardObject.drawSquare(chessBoardObject.squareClickedX, chessBoardObject.squareClickedY);
 		// now just redraw the selected piece
 		this.drawPiece(chessBoardObject, chessBoardObject.squareClickedY, chessBoardObject.squareClickedX);
 	}
 
 	Render.prototype.drawPreviousSquare = function (chessBoardObject) {
-		// When user clicks
-		// future me - update so only highlights on users pieces
-		// on first click of move there will be no value for prevSquareClicked, check for it:
-		//if (typeof chessBoardObject.prevSquareClickedX !== "undefined" && typeof chessBoardObject.prevSquareClickedY !== "undefined") {
-			// redraw previous square otherwise it will stay yellow!
-			chessBoardObject.drawSquare(chessBoardObject.prevSquareClickedX, chessBoardObject.prevSquareClickedY);
-			// now redraw piece on previously selected square
+		// redraw previous square otherwise it will stay yellow!
+		chessBoardObject.drawSquare(chessBoardObject.prevSquareClickedX, chessBoardObject.prevSquareClickedY);
+		// now redraw piece on previously selected square
+		if (chessBoardObject.validFirstClick === false) {
 			this.drawPiece(chessBoardObject, chessBoardObject.prevSquareClickedY, chessBoardObject.prevSquareClickedX);
-		//}
+		}
 	}
 
 	Render.prototype.getPieceClicked = function (boardLayoutObject, chessBoardObject) {
-		this.selectedPiece = boardLayoutObject.pieceLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX];	
+		this.selectedPiece = boardLayoutObject.pieceLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX];
 	};
-
-	Render.prototype.movePiece = function (boardLayoutObject, chessBoardObject) {
-		// only can move to an empty square
-		// major rework here later!!
-		if (boardLayoutObject.pieceLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] === null) {
-			// I had to temp store the piece obj to move in a variable, didn't need to do this for local moves
-			// but do need to do it for websocket moves (oppenent moves), one fustrating/ time consuming bug!
-			var tempObjPlaceHolder = boardLayoutObject.pieceLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX];
-			// set previous square clicked to null as square will now be empty
-			boardLayoutObject.pieceLayout[chessBoardObject.prevSquareClickedY][chessBoardObject.prevSquareClickedX] = null;
-			// set current square clicked with piece from last square
-			boardLayoutObject.pieceLayout[chessBoardObject.squareClickedY][chessBoardObject.squareClickedX] = tempObjPlaceHolder;
-		} 
-		// clear out selected piece ready for next move
-		this.selectedPiece = "";
-	};
-	
-	
-	Render.prototype.endMove = function (chessBoardObject) {
-		chessBoardObject.prevSquareClickedX = -1;
-		chessBoardObject.prevSquareClickedY = -1;
-		chessBoardObject.squareClickedX = -1;
-		chessBoardObject.squareClickedY = -1;
-		chessBoardObject.validFirstClick = false;
-	}
 }

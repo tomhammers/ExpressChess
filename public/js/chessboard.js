@@ -37,7 +37,7 @@ var ChessBoard = function ChessBoard(canvas) {
 
 	// this was in drawBoard, this is better since this code can be reused on click events
 	ChessBoard.prototype.drawSquare = function (row, column) {
-		if (this.squareClickedX === row && this.squareClickedY === column) {
+		if (this.validFirstClick) {
 			this.colourSquare('yellow', row * this.squareWidth, column * this.squareHeight);
 		} else if (this.alternativeSquare(row, column)) {
 			this.colourSquare('#6d6a6a', row * this.squareWidth, column * this.squareHeight);
@@ -74,7 +74,7 @@ var ChessBoard = function ChessBoard(canvas) {
 		if (boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX] !== null) {
 			// will only return true if player clicked on their OWN piece on first click
 			if (boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX].color === playerColour) {
-				return true;
+				this.validFirstClick = true;
 			}
 		}
 	};
