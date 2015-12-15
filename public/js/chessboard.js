@@ -70,21 +70,23 @@ var ChessBoard = function ChessBoard(canvas) {
 	
 	// has the player clicked on their own piece on the FIRST click?
 	ChessBoard.prototype.validClick = function (boardLayout, playerColour) {
-		if(boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX]!== null) {
-			if(boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX].color === playerColour) {
+		// if clicked on null square, will exit method and return false
+		if (boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX] !== null) {
+			// will only return true if player clicked on their OWN piece on first click
+			if (boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX].color === playerColour) {
 				return true;
 			}
 		}
 	};
 	
-	// check second click is either on null square or oppenent colour
-	ChessBoard.prototype.checkSecondClick = function(boardLayout, playerColour) {
-		if(boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX]!== playerColour) {
+	// has the player clicked an empty square or on an oppenets piece?
+	ChessBoard.prototype.checkSecondClick = function (boardLayout, playerColour) {
+		if (boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX] === null ||
+			boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX].color !== playerColour) {
 			return true;
 		}
-		
-	}
 
+	};
 };
 
 // Attributes of a chess piece image and a method to draw a chess piece

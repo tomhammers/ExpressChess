@@ -1,16 +1,16 @@
 $(document).ready(function () {
-	
-	// $(window).load(function(){
-    //     $('.modal').modal('show');
-    // });
+
 	var socket = io();
 	var chessBoard = new ChessBoard(document.getElementById('game'));
 	var boardLayout = new BoardLayout(); // layout of the chess pieces
 	var render = new Render(boardLayout); // pass chessboard object to the renderer
 	var player = new Player();
+	
+	// objects are 'passed by reference' so game object will always know the state of the board
+	var game = new GameLogic(player, boardLayout, chessBoard);
 	var modalBody = document.getElementById('serverMessages');
 	var roomID = "";
-	
+
 	render.drawBoard(chessBoard); // this should only need drawing as required
 	render.drawPieces(chessBoard);
 
@@ -32,35 +32,44 @@ $(document).ready(function () {
 			chessBoard.squareClicked(event); // work out where the user clicked
 			// only attempt move if a previous square has been clicked
 			if (chessBoard.validFirstClick) {
-				// check second click 
-				// now move the piece from prev square clicked to current square clicked in the data structure
-				render.movePiece(boardLayout, chessBoard);
-				player.turn = false;
-				render.drawPreviousSquare(chessBoard);  			// redraw previous selected square
-				render.drawSquare(chessBoard, player.turn);			// draw current selected square
-		
-				// send the move to the server
-				socket.emit('piece move', {
-					sqClickedX: chessBoard.squareClickedX,
-					sqClickedY: chessBoard.squareClickedY,
-					prevSqClickedX: chessBoard.prevSquareClickedX,
-					prevSqClickedY: chessBoard.prevSquareClickedY,
-					pieceToMove: render.selectedPiece,
-					move: boardLayout,
-					room: roomID
-				});
+				// has the player clicked on an empty square or on oppenents piece?
+				if (chessBoard.checkSecondClick(boardLayout, player.colourPieces)) {
 
-				render.endMove(chessBoard);
+					// so far so good, now need to check the move was valid... try move this in parent IF later
+					if (game.checkMove()) {	
+						// now move the piece from prev square clicked to current square clicked in the data structure
+						render.movePiece(boardLayout, chessBoard);
+						player.turn = false;
+						render.drawPreviousSquare(chessBoard);  			// redraw previous selected square
+						render.drawSquare(chessBoard, player.turn);			// draw current selected square
+			
+						// send the move to the server
+						socket.emit('piece move', {
+							sqClickedX: chessBoard.squareClickedX,
+							sqClickedY: chessBoard.squareClickedY,
+							prevSqClickedX: chessBoard.prevSquareClickedX,
+							prevSqClickedY: chessBoard.prevSquareClickedY,
+							pieceToMove: render.selectedPiece,
+							move: boardLayout,
+							room: roomID
+						});
 
-			} else {
-				
+						render.endMove(chessBoard);
+						}
+				} else { // not a valid second click
+					// reset the move if user clicked on own piece on 2nd click
+					render.drawPreviousSquare(chessBoard);
+					render.endMove(chessBoard);
+				}
+
+			} else { // no valid first click yet
 				// only draw current selected square if no previous clicks (will just highlight square)
 				if (chessBoard.validClick(boardLayout, player.colourPieces)) {
 					chessBoard.validFirstClick = true;
 					render.drawSquare(chessBoard, player.turn);
 				} else { // not a valid click, remove click co-ords before mouseup grabs them
 					chessBoard.validFirstClick = false;
-				}	
+				}
 			}
 		}
 	}, false);
@@ -82,7 +91,7 @@ $(document).ready(function () {
 		chessBoard.prevSquareClickedX = data.prevSqClickedX;
 		chessBoard.prevSquareClickedY = data.prevSqClickedY;
 		render.selectedPiece = data.pieceToMove;
-			
+
 		render.movePiece(boardLayout, chessBoard);
 		render.drawPreviousSquare(chessBoard);  // redraw previous selected square
 		render.drawSquare(chessBoard);

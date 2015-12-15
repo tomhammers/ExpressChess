@@ -84,9 +84,9 @@ io.on('connection', function (socket) {
   }
   
   // players who use same link should connect to a specific room
-  socket.on('join room', function (data) {
-    socket.join(data.room);
-  });
+  // socket.on('join room', function (data) {
+  //   socket.join(data.room);
+  // });
 
   socket.on('piece move', function (data) {
     // send move to users in room
