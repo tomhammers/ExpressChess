@@ -1,5 +1,12 @@
 $(document).ready(function () {
 
+	function resetMove() {
+		chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
+		render.drawPreviousSquare(chessBoard);
+		render.drawSquare(chessBoard);
+		game.endMove(); // using this to "reset" players move, player.turn is still true
+	}
+
 	var socket = io();
 	var chessBoard = new ChessBoard(document.getElementById('game'));
 	var boardLayout = new BoardLayout(); // layout of the chess pieces
@@ -8,8 +15,8 @@ $(document).ready(function () {
 	
 	// objects are 'passed by reference' so game object will always know the state of the board
 	var game = new GameLogic(player, boardLayout, chessBoard);
-	
-	
+
+
 	var modalBody = document.getElementById('serverMessages');
 	var roomID = "";
 
@@ -59,13 +66,17 @@ $(document).ready(function () {
 						});
 
 						game.endMove();
-						}
+					}
+					else { // invalid move, reset
+						resetMove();
+					}
 				} else { // not a valid second click
 					// reset the move if user clicked on own piece on 2nd click
-					chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
-					render.drawPreviousSquare(chessBoard);
-					render.drawSquare(chessBoard);
-					game.endMove(); // using this to "reset" players move, player.turn is still true
+					// chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
+					// render.drawPreviousSquare(chessBoard);
+					// render.drawSquare(chessBoard);
+					// game.endMove(); // using this to "reset" players move, player.turn is still true
+					resetMove();
 				}
 
 			} else { // no valid first click yet
@@ -74,10 +85,7 @@ $(document).ready(function () {
 				// only draw current selected square if no previous clicks (will just highlight square)
 				if (chessBoard.validFirstClick) {
 					render.drawSquare(chessBoard, player.turn);
-				} else { // not a valid click, remove click co-ords before mouseup grabs them
-					//chessBoard.validFirstClick = false;
-					render.drawPreviousSquare(chessBoard);
-				}
+				} // else not valid, do NOTHING!
 			}
 		}
 	}, false);
