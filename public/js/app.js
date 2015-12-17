@@ -14,7 +14,7 @@ $(document).ready(function () {
 	var player = new Player();
 	
 	// objects are 'passed by reference' so game object will always know the state of the board
-	var game = new GameLogic(player, boardLayout, chessBoard);
+	var game = new GameLogic(player, boardLayout, chessBoard, render);
 
 
 	var modalBody = document.getElementById('serverMessages');
@@ -64,7 +64,7 @@ $(document).ready(function () {
 							move: boardLayout,
 							room: roomID
 						});
-
+						game.incMoveCount();
 						game.endMove();
 					}
 					else { // invalid move, reset
