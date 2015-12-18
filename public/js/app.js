@@ -4,7 +4,7 @@ $(document).ready(function () {
 		chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
 		render.drawPreviousSquare(chessBoard);
 		render.drawSquare(chessBoard);
-		game.endMove(); // using this to "reset" players move, player.turn is still true
+		game.endMove(); // using this to end move and 'reset' everything
 	}
 
 	var socket = io();
@@ -43,39 +43,28 @@ $(document).ready(function () {
 			// only attempt move if a previous square has been clicked
 			if (chessBoard.validFirstClick) {
 				// has the player clicked on an empty square or on oppenents piece?
-				if (chessBoard.checkSecondClick(boardLayout, player.colourPieces)) {
-
-					// so far so good, now need to check the move was valid... try move this in parent IF later
-					if (game.checkMove()) {	
-						// now move the piece from prev square clicked to current square clicked in the data structure
-						game.movePiece();
-						chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
-						player.turn = false;
-						render.drawPreviousSquare(chessBoard);  			// redraw previous selected square
-						render.drawSquare(chessBoard);			// draw current selected square
+				if (chessBoard.checkSecondClick(boardLayout, player.colourPieces) && game.checkMove()) {
+					// now move the piece from prev square clicked to current square clicked in the data structure
+					game.movePiece();
+					chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
+					player.turn = false;
+					render.drawPreviousSquare(chessBoard);  			// redraw previous selected square
+					render.drawSquare(chessBoard);			// draw current selected square
 			
-						// send the move to the server
-						socket.emit('piece move', {
-							sqClickedX: chessBoard.squareClickedX,
-							sqClickedY: chessBoard.squareClickedY,
-							prevSqClickedX: chessBoard.prevSquareClickedX,
-							prevSqClickedY: chessBoard.prevSquareClickedY,
-							pieceToMove: render.selectedPiece,
-							move: boardLayout,
-							room: roomID
-						});
-						game.incMoveCount();
-						game.endMove();
-					}
-					else { // invalid move, reset
-						resetMove();
-					}
+					// send the move to the server
+					socket.emit('piece move', {
+						sqClickedX: chessBoard.squareClickedX,
+						sqClickedY: chessBoard.squareClickedY,
+						prevSqClickedX: chessBoard.prevSquareClickedX,
+						prevSqClickedY: chessBoard.prevSquareClickedY,
+						pieceToMove: render.selectedPiece,
+						move: boardLayout,
+						room: roomID
+					});
+					game.incMoveCount();
+					game.endMove();
+
 				} else { // not a valid second click
-					// reset the move if user clicked on own piece on 2nd click
-					// chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
-					// render.drawPreviousSquare(chessBoard);
-					// render.drawSquare(chessBoard);
-					// game.endMove(); // using this to "reset" players move, player.turn is still true
 					resetMove();
 				}
 

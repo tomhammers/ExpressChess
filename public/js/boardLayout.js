@@ -56,12 +56,12 @@ var BoardLayout = function BoardLayout() {
 	this.pieceLayout = [
 		[this.rookB1, this.knightB1, this.bishopB1, this.queenB1, this.kingB1, this.bishopB2, this.knightB2, this.rookB2],
 		[this.pawnB1, this.pawnB2, this.pawnB3, this.pawnB4, this.pawnB5, this.pawnB6, this.pawnB7, this.pawnB8],
-		[null, null, null, null, null, null, null, null],
+		[null, null, null, this.kingW1, null, null, null, null],
 		[null, null, null, null, null, null, null, null],
 		[null, null, null, null, null, null, null, null],
 		[null, null, null, null, null, null, null, null],
 		[this.pawnW1, this.pawnW2, this.pawnW3, this.pawnW4, this.pawnW5, this.pawnW6, this.pawnW7, this.pawnW8],
-		[this.rookW1, this.knightW1, this.bishopW1, this.queenW1, this.kingW1, this.bishopW2, this.knightW2, this.rookW2]
+		[this.rookW1, this.knightW1, this.bishopW1, this.queenW1, null, this.bishopW2, this.knightW2, this.rookW2]
 	];
 	
 	BoardLayout.prototype.getPiece = function(piece) {
