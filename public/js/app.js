@@ -1,3 +1,4 @@
+"use strict";
 $(document).ready(function () {
 
 	function resetMove() {
@@ -14,7 +15,7 @@ $(document).ready(function () {
 	var player = new Player();
 	
 	// objects are 'passed by reference' so game object will always know the state of the board
-	var game = new GameLogic(player, boardLayout, chessBoard, render);
+	var game = new GameLogic(player, boardLayout, chessBoard);
 
 
 	var modalBody = document.getElementById('serverMessages');

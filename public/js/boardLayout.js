@@ -4,17 +4,9 @@ var ChessPiece = function ChessPiece(name, pieceType, colour) {
 	this.name = name;
 	this.pieceType = pieceType;
    	this.color = colour;
-	this.moveCount = 0;
-	  
-	// get a feeling this will be useful for multiple pieces 
-	ChessPiece.prototype.hasPieceMoved = function() {
-		if(this.moveCount !== 0) {
-			return true;
-		}	
-	}	   
+	this.moveCount = 0;	   
 }
 
-// define any constants here
 var BoardLayout = function BoardLayout() {
 	// declare 32 chess piece objects
 	this.rookB1 = 		new ChessPiece("rB1", "rook", "black"); 	// rook black 1
@@ -63,23 +55,4 @@ var BoardLayout = function BoardLayout() {
 		[this.pawnW1, this.pawnW2, this.pawnW3, this.pawnW4, this.pawnW5, this.pawnW6, this.pawnW7, this.pawnW8],
 		[this.rookW1, this.knightW1, this.bishopW1, this.queenW1, null, this.bishopW2, this.knightW2, this.rookW2]
 	];
-	
-	BoardLayout.prototype.getPiece = function(piece) {
-		var pieceLookUp = {
-			
-		}
-		
-	}
-	
-
-	BoardLayout.prototype.updateBoard = function(fromY, fromX, toY, toX) {
-		
-	}
 }
-
-
-
-
-
-
-

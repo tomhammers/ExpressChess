@@ -1,15 +1,13 @@
 "use strict";
 // what I will call everytime I want to draw something
 var Render = function Render(boardLayoutObject) {
-
 	this.selectedPiece;
-
 	// method just to call another method?
 	Render.prototype.drawBoard = function (chessBoardObject) {
 		chessBoardObject.drawBoard();
 	}
 
-	// Draw everything in the global boardLayout array
+	// Draw everything in the boardLayout array
 	Render.prototype.drawPieces = function (chessBoardObject) {
 		// pass the chessboard object so we know where to place the pieces
 		for (var row = 0; row < 8; row++) {
@@ -18,14 +16,11 @@ var Render = function Render(boardLayoutObject) {
 			}
 		}
 	}
-	
 	// this code used to be part of drawPieces method
 	// but now this code can be reused on click events (used in drawSquare)
 	Render.prototype.drawPiece = function (chessBoardObject, row, column) {
 		// take advantage of the "fallthrough" feature in js switch case to draw the piece
 		switch (boardLayoutObject.pieceLayout[row][column]) {
-			//case boardLayoutObject.object.pieceType === "rook":
-			//case this.rookB1: 
 			case boardLayoutObject.rookB1:  	// black rook1
 			case boardLayoutObject.rookB2:  	// black rook2
 				var rookB = new ChessPieceImage('img/Black R.png', chessBoardObject, column, row);
@@ -54,7 +49,7 @@ var Render = function Render(boardLayoutObject) {
 			case boardLayoutObject.pawnB8:  	// black pawn8
 				var pawnB = new ChessPieceImage('img/Black P.png', chessBoardObject, column, row);
 				break;
-			case null:  // do nothing
+			case null:
 				break; // do nothing
 			case boardLayoutObject.pawnW1:  	// white pawn1
 			case boardLayoutObject.pawnW2:  	// white pawn2
@@ -91,7 +86,6 @@ var Render = function Render(boardLayoutObject) {
 	}
 
 	Render.prototype.drawSquare = function (chessBoardObject) {
-	
 		chessBoardObject.drawSquare(chessBoardObject.squareClickedX, chessBoardObject.squareClickedY);
 		// now just redraw the selected piece
 		this.drawPiece(chessBoardObject, chessBoardObject.squareClickedY, chessBoardObject.squareClickedX);

@@ -85,13 +85,11 @@ var ChessBoard = function ChessBoard(canvas) {
 			boardLayout.pieceLayout[this.squareClickedY][this.squareClickedX].color !== playerColour) {
 			return true;
 		}
-
 	};
 };
 
 // Attributes of a chess piece image and a method to draw a chess piece
 var ChessPieceImage = function ChessPieceImage(pathToImage, chessBoardObject, x, y) {
-
 	this.pieceImage = new Image();
 	// ChessPiece takes up 94% of available square, I've done this to keep my chessboard responsive
 	this.imageWidth = (chessBoardObject.squareWidth / 100) * 94;
