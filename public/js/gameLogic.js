@@ -57,6 +57,9 @@ GameLogic.prototype.checkMove = function () {
         case "king":
             this.checkKingMove();
             break;
+        case "queen":
+            this.checkQueenMove();
+            break;
         default:
             console.log("not sure what you picked up...");
     }
@@ -65,11 +68,9 @@ GameLogic.prototype.checkMove = function () {
     this.inCheck();
     // if true move will be allowed, if false move will be reset in app.js
     return this.validMove;
-
 }
 
 GameLogic.prototype.checkPawnMove = function () {
-	
     // pawns can only move in one direction depending on the player
     var validForwardSquares = [];
     if (this.player.colourPieces === "white") {
@@ -139,19 +140,22 @@ GameLogic.prototype.checkPawnMove = function () {
 
 GameLogic.prototype.checkKingMove = function () {
     var self = this;
-    // click was on the same row, one row forward or one row backward?
+    // click was on the same row
     if (this.y === this.prevY) {
-        // can only move left or right
+        // can only move left or right since click on self is not valid
         if (this.x === this.prevX - 1 || this.x === this.prevX + 1) {
             this.validMove = true;
         }
     }
+    // click was one above
     if (this.y === this.prevY + 1) {
         checkX.call(self);
     }
+    // click was one below
     if (this.y === this.prevY + -1) {
         checkX.call(self);
     }
+    // checks x co-ordinate left to right
     function checkX() {
         if (self.x === self.prevX - 1 || self.x === self.prevX || self.x === self.prevX + 1) {
             this.validMove = true;
@@ -160,17 +164,20 @@ GameLogic.prototype.checkKingMove = function () {
     }
 }
 
+GameLogic.prototype.checkQueenMove = function() {
+    
+}
 
-
-// method to ensure own King is not in check before making move
+// find our own king
 GameLogic.prototype.findKing = function () {
     // find king of our colour in data structure
     for (var row = 0; row < 8; row++) {
         for (var col = 0; col < 8; col++) {
-            if (this.boardLayout.pieceLayout[row][col] !== null) {
-                if (this.boardLayout.pieceLayout[row][col].pieceType === "king" && this.boardLayout.pieceLayout[row][col].color === this.player.colourPieces) {
+            if (this.boardLayout.pieceLayout[row][col] !== null && this.boardLayout.pieceLayout[row][col].color === this.player.colourPieces) {
+                if (this.boardLayout.pieceLayout[row][col].pieceType === "king") {
                     this.kingY = row;
                     this.kingX = col;
+                    console.log("found king at " + row + " " + col);
                 } // if square contains King
             } // if square !== null
         }	// for col
@@ -178,7 +185,6 @@ GameLogic.prototype.findKing = function () {
 }
 
 GameLogic.prototype.inCheck = function () {
-
     // temp make move so we can check
     this.movePiece();
     // where is our king?
@@ -192,7 +198,7 @@ GameLogic.prototype.inCheck = function () {
         // in that case we are in check, so can't make that move
         this.validMove = false;
     }
-    // set to false ready for next check
+    // set to false ready for next time
     this.beingAttacked = false;
 }
 
@@ -200,9 +206,8 @@ GameLogic.prototype.inCheck = function () {
 GameLogic.prototype.inCheckMate = function () {
 
 }
-// is the y and x co-ordinate given in danger?
+// is the y and x co-ordinate given under attack from an enemy piece?
 GameLogic.prototype.underAttack = function (y, x) {
-
     var i, j;
     // first check along the straight lines
     // how far do we need to check upwards? worry about queen, rooks and king
@@ -245,14 +250,17 @@ GameLogic.prototype.underAttack = function (y, x) {
     function checkLines(row, col) {   
         // only check further if the piece is the oppenents
         if (this.pieceOnSquare.color === this.oppenentColour) {
-            // is there a King next to the piece?
-            if (row === this.y - 1 || row === this.y + 1 || col === this.x - 1 || col === this.x + 1) {
+            // is there a enemy queen or rook
+            if (this.pieceOnSquare.pieceType === "queen" || this.pieceOnSquare.pieceType === "rook") {
+                this.beingAttacked = true;
+            }
+            
+            // is there an enemy king next to us?
+            // checks one square directly UP, LEFT, RIGHT then DOWN - if any of these are true then beingAttacked = true = true
+            if ((row === y - 1 && col === x) || (row === y && col === x - 1 || col === x + 1) || (row === y + 1 && col === x)) {
                 if (this.pieceOnSquare.pieceType === "king") {
                     this.beingAttacked = true;
                 }
-            }
-            if (this.pieceOnSquare.pieceType === "queen" || this.pieceOnSquare.pieceType === "rook") {
-                this.beingAttacked = true;
             }
         }
     }
@@ -271,7 +279,7 @@ GameLogic.prototype.underAttack = function (y, x) {
     for (i = y + 1, j = x + 1; i <= 7 && j <= 7; i++ , j++) {
         this.squareHasPiece(i, j);
         if (this.squareContainsPiece) {
-            checkDiagonals.call(this, y, j);
+            checkDiagonals.call(this, i, j);
             this.squareContainsPiece = false // ready for next for loop	
             break; // break as we are only concerned with the first piece in the way
         }
@@ -280,7 +288,7 @@ GameLogic.prototype.underAttack = function (y, x) {
     for (i = y + 1, j = x - 1; i <= 7 && j >= 0; i++ , j--) {
         this.squareHasPiece(i, j);
         if (this.squareContainsPiece) {
-            checkDiagonals.call(this, y, j);
+            checkDiagonals.call(this, i, j);
             this.squareContainsPiece = false // ready for next for loop	
             break; // break as we are only concerned with the first piece in the way
         }
@@ -289,12 +297,65 @@ GameLogic.prototype.underAttack = function (y, x) {
     for (i = y - 1, j = x - 1; i >= 0 && j >= 0; i-- , j--) {
         this.squareHasPiece(i, j);
         if (this.squareContainsPiece) {
-            checkDiagonals.call(this, y, j);
+            checkDiagonals.call(this, i, j);
             this.squareContainsPiece = false // ready for next for loop	
             break; // break as we are only concerned with the first piece in the way
         }
     }
     function checkDiagonals(row, col) {
+        // only check further if the piece is the oppenents
+        if (this.pieceOnSquare.color === this.oppenentColour) {
+            // pawns first
+            var i = -1; // default checking for black pawns -1 on the y axis
+            if (this.oppenentColour === "white") {
+                i = 1; // or check +1 on the y axis
+            }
+            // row plus (+1 or -1) AND col -1 OR col + 1 - looking for pawn one square diagonally
+            if (row === y + i && col === x - 1 || col === x + 1) {
+                if (this.pieceOnSquare.pieceType === "pawn") {
+                    this.beingAttacked = true;
+                }
+            }
+            // is there a king next to us?
+            // checks one square NW, NE, SW and SE
+            if ((row === y - 1 && col === x - 1 || col === x + 1) || (row === y + 1 && col === x - 1 || col === x + 1)) {
+                if (this.pieceOnSquare.pieceType === "king") {
+                    this.beingAttacked = true;
+                }
+            }
+            // is there an enemy queen or bishop?
+            if (this.pieceOnSquare.pieceType === "queen" || this.pieceOnSquare.pieceType === "bishop") {
+                this.beingAttacked = true;
+            }
+        } // else - first piece in the way was own colour, don't worry about it
+    }
+    
+    /******************************************************************************* */
+    // check for enemy knight
+    // i'm sure there is a better way to do this, but my head is hurting too much right now
+    this.squareHasPiece(y - 1, x - 2);
+    this.checkForKnight();
+    this.squareHasPiece(y - 2, x - 1);
+    this.checkForKnight();
+    this.squareHasPiece(y - 2, x + 1);
+    this.checkForKnight();
+    this.squareHasPiece(y - 1, x + 2);
+    this.checkForKnight();
+
+    this.squareHasPiece(y + 1, x + 2);
+    this.checkForKnight();
+    this.squareHasPiece(y + 2, x + 1);
+    this.checkForKnight();
+    this.squareHasPiece(y + 2, x - 1);
+    this.checkForKnight();
+    this.squareHasPiece(y + 1, x - 2);
+    this.checkForKnight();
+}
+
+GameLogic.prototype.checkForKnight = function () {
+    // has to be opp colour and a knight
+    if (this.pieceOnSquare.color === this.oppenentColour && this.pieceOnSquare.pieceType === "knight") {
+        this.beingAttacked = true;
     }
 }
 
@@ -302,10 +363,14 @@ GameLogic.prototype.underAttack = function (y, x) {
 // already checked user hasn't clicked on own piece on second click
 GameLogic.prototype.squareHasPiece = function (row, col) {
     // already checked click wasn't on own pieces
-    if (this.boardLayout.pieceLayout[row][col] !== null) {
-        // found a piece
-        this.squareContainsPiece = true;
-        this.pieceOnSquare = this.boardLayout.pieceLayout[row][col];
+    // only check valid squares
+    if (row > -1 && row < 8 && col > -1 && col < 8) {
+        // if not equal to null then we have found a piece
+        if (this.boardLayout.pieceLayout[row][col] !== null) {
+            // found a piece
+            this.squareContainsPiece = true;
+            this.pieceOnSquare = this.boardLayout.pieceLayout[row][col];
+        }
     }
 }
 
@@ -334,13 +399,12 @@ GameLogic.prototype.movePiece = function () {
     this.boardLayout.pieceLayout[this.chessBoard.prevSquareClickedY][this.chessBoard.prevSquareClickedX] = null;
     // move temp object to the new square clicked
     this.boardLayout.pieceLayout[this.chessBoard.squareClickedY][this.chessBoard.squareClickedX] = this.pieceHolder;
+
 }
 
 GameLogic.prototype.incMoveCount = function () {
     // add one to the move count
     this.boardLayout.pieceLayout[this.chessBoard.squareClickedY][this.chessBoard.squareClickedX].moveCount++;
-	
-    //this.square.moveCount++;
 }
 
 // resets variables, used to reset move on unvalid clicks too
