@@ -28,6 +28,7 @@ var GameLogic = function GameLogic(player, boardLayout, chessBoard) {
     this.check = false; 		// are WE in check?
     this.checkmate = false;		// have we put oppenent in checkmate?
     this.beingAttacked = false;
+    this.safeSpace = false; // found a safe space to move to?
 
 }
 
@@ -77,7 +78,7 @@ GameLogic.prototype.checkMove = function () {
 	
     // will King be in check if move happens? last chance to change validMove to false;
     this.inCheck();
-    // have we put oppenent in check?
+    // have we put oppenent in checkmate?
     //this.putOppenentInCheck();
     // if true move will be allowed, if false move will be reset in app.js
     return this.validMove;
@@ -148,7 +149,7 @@ GameLogic.prototype.checkPawnMove = function () {
 GameLogic.prototype.checkKingMove = function () {
     // click was on the same row
     if (this.y === this.prevY) {
-        // can only move left or right since click on this is not valid
+        // can only move left or right since 2nd click on king is not valid
         if (this.x === this.prevX - 1 || this.x === this.prevX + 1) {
             this.validMove = true;
         }
@@ -161,7 +162,7 @@ GameLogic.prototype.checkKingMove = function () {
     if (this.y === this.prevY + -1) {
         checkX.call(this);
     }
-    // checks x co-ordinate left to right
+    // checks x co-ordinate left, middle then right
     function checkX() {
         if (this.x === this.prevX - 1 || this.x === this.prevX || this.x === this.prevX + 1) {
             this.validMove = true;
@@ -315,13 +316,12 @@ GameLogic.prototype.inCheck = function () {
         // in that case we are in check, so can't make that move
         this.validMove = false;
         this.check = true;
+        // set to false ready for next check
+        this.beingAttacked = false
         console.log("You are in check");
     }
     // now put the game state back to how it was
     this.undoMove();
-   
-    // set to false ready for next time
-    //this.beingAttacked = false;
 }
 
 GameLogic.prototype.pieceInTheWay = function () {
@@ -357,7 +357,46 @@ GameLogic.prototype.findKings = function () {
 
 // have we put the oppenent in checkmate?? -> WINNER
 GameLogic.prototype.inCheckMate = function () {
+    // check all possible king moves - still in check for each one?
+    console.log(this.kingY + " " + this.kingX);
+    if (this.kingY === 0) { // can't move up
+        // one square
+        checkLeft.call(this, this.kingY, this.kingX);
+    }
+    if (this.kingY === 7) { // can't move down
+        
+    }
+    if (this.kingX === 0) { // can't move left
+        
+    }
+    if (this.kingX === 7) { // can't move right
+        
+    }
+    // check all directions
+    if ((this.kingY > 0 && this.kingY < 7) && (this.kingX > 0 && this.kingX < 7)) {
 
+    }
+
+    function checkLeft(y, x) {
+        this.squareHasPiece(y, x - 1);
+        // only attempt if square doen not contain own piece
+        if (this.pieceOnSquare.color !== this.player.colourPieces) {
+            this.movePiece(y, x - 1, y, x);
+            // still under attack here?
+            this.underAttack(y, x - 1);
+            if (!this.beingAttacked) {
+                this.safeSpace = true;
+            }
+        }
+    }
+
+    function checkRight() {
+
+    }
+    
+    // can a piece block the check?
+    
+    // can the piece threatening the king be attacked?
 }
 
 // is the y and x co-ordinate given under attack from an enemy piece?
@@ -429,7 +468,10 @@ GameLogic.prototype.underAttack = function (y, x) {
     // now check along the diagonals
     // NE diagonal? Worry about bishop, queen, pawn, king
     for (i = y - 1, j = x + 1; i >= 0 && j <= 7; i-- , j++) {
+        // check each square for a piece
         this.squareHasPiece(i, j);
+        console.log(i + " " + j);
+        // if we found one, check what it is and if its a danger
         if (this.squareContainsPiece) {
             checkDiagonals.call(this, i, j);
             this.squareContainsPiece = false // ready for next for loop	 
@@ -472,7 +514,7 @@ GameLogic.prototype.underAttack = function (y, x) {
                 i = 1; // or check +1 on the y axis
             }
             // row plus (+1 or -1) AND col -1 OR col + 1 - looking for pawn one square diagonally
-            if (row === y + i && col === x - 1 || col === x + 1) {
+            if ((row === y + i) && (col === x - 1 || col === x + 1)) {
                 if (this.pieceOnSquare.pieceType === "pawn") {
                     this.beingAttacked = true;
                 }
@@ -490,7 +532,7 @@ GameLogic.prototype.underAttack = function (y, x) {
             }
         } // else - first piece in the way was own colour, don't worry about it
     }
-    
+ 
     /******************************************************************************* */
     // check for enemy knight - checks 8 possible positions around piece
     // i'm sure there is a better way to do this, but my head is hurting too much right now
@@ -546,14 +588,19 @@ GameLogic.prototype.hasPieceMoved = function () {
 // undoMove after to return the game to how it was
 
 // this is called for final move and if the program needs to make a temp move to check potential state of board
-GameLogic.prototype.movePiece = function () {
-    // store piece objects, they may be needed in undoMove method
-    this.pieceHolder = this.boardLayout.pieceLayout[this.chessBoard.prevSquareClickedY][this.chessBoard.prevSquareClickedX];
-    this.oppPieceHolder = this.boardLayout.pieceLayout[this.chessBoard.squareClickedY][this.chessBoard.squareClickedX];
+GameLogic.prototype.movePiece = function (toY, toX, fromY, fromX) {
+    // if no parameters are passed use the mouse clicks by default
+    if (toY === undefined) toY = this.chessBoard.squareClickedY;
+    if (toX === undefined) toX = this.chessBoard.squareClickedX;
+    if (fromY === undefined) fromY = this.chessBoard.prevSquareClickedY;
+    if (fromX === undefined) fromX = this.chessBoard.prevSquareClickedX;
+
+    this.pieceHolder = this.boardLayout.pieceLayout[fromY][fromX];
+    this.oppPieceHolder = this.boardLayout.pieceLayout[toY][toX];
     // now assign previous square to null
-    this.boardLayout.pieceLayout[this.chessBoard.prevSquareClickedY][this.chessBoard.prevSquareClickedX] = null;
+    this.boardLayout.pieceLayout[fromY][fromX] = null;
     // move temp object to the new square clicked
-    this.boardLayout.pieceLayout[this.chessBoard.squareClickedY][this.chessBoard.squareClickedX] = this.pieceHolder;
+    this.boardLayout.pieceLayout[toY][toX] = this.pieceHolder;
 }
 
 // this will reset the move
@@ -576,6 +623,7 @@ GameLogic.prototype.endMove = function () {
     this.squareContainsPiece = false;
     this.pieceMoved = false;
     this.validMove = false;
+    this.check = false;
 }
 
 
