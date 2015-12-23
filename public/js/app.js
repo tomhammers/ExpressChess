@@ -104,13 +104,17 @@ $(document).ready(function () {
         console.log("got move from server");
         player.turn = true;
         game.endMove();
-        // are we in check? had to run endMove before checking
-        game.inCheck();
-        if (game.check === true) {
-            console.log("You are in check by oppenent");
-            // we are in check, is it checkmate?
-            game.inCheckMate();
-        }
+        // are we in check? had to run endMove before checking to reset stuff
+        // game.inCheck();
+        // if (game.check === true) {
+        //     console.log("You are in check by oppenent");
+        //     // we are in check, is it checkmate?
+        //     game.inCheckMate();
+        //     if (game.checkmate === true) {
+        //         console.log("Oppenent won");
+        //         // send message to server
+        //     }
+        // }
         // run endMove again, ready for player to make move
         game.endMove();
     });
