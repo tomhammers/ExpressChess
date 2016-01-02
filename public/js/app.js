@@ -1,13 +1,5 @@
 "use strict";
 $(document).ready(function () {
-
-    function resetMove() {
-        chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
-        render.drawPreviousSquare(chessBoard);
-        render.drawSquare(chessBoard);
-        game.endMove(); // using this to end move and 'reset' everything
-    }
-
     var socket = io();
     var chessBoard = new ChessBoard(document.getElementById('game'));
     var boardLayout = new BoardLayout(); // layout of the chess pieces
@@ -17,24 +9,80 @@ $(document).ready(function () {
     // objects are 'passed by reference' so game object will always know the state of the board
     var game = new GameLogic(player, boardLayout, chessBoard);
 
-
     var modalBody = document.getElementById('serverMessages');
+    // status area so player knows whos turn it is
+    var status = document.getElementById('status');
     var roomID = "";
-
-    render.drawBoard(chessBoard); // this should only need drawing as required
-    render.drawPieces(chessBoard);
+    var nickname = "";
+    
+    function resetMove() {
+        chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
+        render.drawPreviousSquare(chessBoard);
+        render.drawSquare(chessBoard);
+        game.endMove(); // using this to end move and 'reset' everything
+    }
+    
+    // change the status so the players know whose move it is
+    function updateMoveStatus() {
+        if (player.colourPieces === "white" && player.turn === true) {
+            status.innerHTML = "White to play";
+            console.log("here");
+        }
+    }
 
     socket.on('new game', function (data) {
-        $('.modal').modal('show');
-        modalBody.innerHTML += "Hello Player " + data.player + ", here is your nickname: <b>" + data.nickname + "</b></br>";
-        modalBody.innerHTML += "You are playing as <b>" + data.colour + "</b></br>";
-        modalBody.innerHTML += "Send this URL to a friend: <b>" + data.shareURL + "</b></br>";
-		
         // server decides whos turn and what colour pieces
         player.turn = data.turn;
         player.colourPieces = data.colour;
-        roomID = data.room
+        roomID = data.room;
+        nickname = data.nickname;
         game.oppenentPiece(); // set colour of oppenent pieces
+        
+        render.drawBoard(chessBoard); // this should only need drawing as required
+        if (player.colourPieces === "black") {
+            // reverse the pieceLayout array so that player sees pieces at the bottom
+            boardLayout.pieceLayout.reverse();
+            render.drawPieces(chessBoard);
+        } else { // white pieces, leave the array as it is
+            render.drawPieces(chessBoard);
+        }
+
+        $('.modal').modal('show');
+        modalBody.innerHTML += "Hello Player " + data.player + ", here is your nickname: <b>" + nickname + "</b></br>";
+        modalBody.innerHTML += "You are playing as <b>" + data.colour + "</b></br>";
+        if (player.colourPieces === "white") {
+            modalBody.innerHTML += "Send this URL to a friend: <b>" + data.shareURL + "</b></br>";
+            document.getElementById('waitingForPlayer').innerHTML = "Waiting for oppenent to connect....";
+        }
+
+        document.getElementById('nickname').innerHTML = "<b>" + data.nickname + "</b>";
+    });
+    
+    // waiting for an oppenent to connect to our game
+    socket.on('black connected', function (data) {
+        document.getElementById('waitingForPlayer').innerHTML = "<b>Player 2 Connected</b><br>";
+        document.getElementById('waitingForPlayer').innerHTML += "<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Play</button>";
+        document.getElementById('oppenentNickname').innerHTML = "<b>" + data.nickname + "</b>";
+        player.turn = true;
+        // send oppenent our nickname
+        socket.emit('white nickname', {
+            room: roomID,
+            nickname: nickname
+        });
+    });
+    
+    // player 2 gets white's nickname
+    socket.on('white nickname', function (data) {
+        document.getElementById('oppenentNickname').innerHTML = "<b>" + data.nickname + "</b>";
+        document.getElementById('waitingForPlayer').innerHTML = "<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Play</button>";
+    });
+    
+    // player went to a game that's already started
+    socket.on('game full', function (data) {
+        $('.modal').modal('show');
+        render.drawBoard(chessBoard);
+        modalBody.innerHTML += "Sorry, game has commenced <br>";
+        modalBody.innerHTML += "Set up a new game: <a href =\"" + data.url + "\">" + data.url + "</a>";
     });
 
     chessBoard.canvas.addEventListener("mousedown", function () {
@@ -64,6 +112,7 @@ $(document).ready(function () {
                     });
                     game.incMoveCount();
                     game.endMove();
+                    status.innerHTML = game.oppenentColour + " to move";
 
                 } else { // not a valid second click
                     resetMove();
@@ -91,31 +140,48 @@ $(document).ready(function () {
 	
     // listening for server to send oppenents move
     socket.on('piece move', function (data) {
+        console.log("got move from server");
+        var toY = -(data.sqClickedY - 7);
+        var fromY = -(data.prevSqClickedY - 7)
 
         chessBoard.squareClickedX = data.sqClickedX;
-        chessBoard.squareClickedY = data.sqClickedY;
+        chessBoard.squareClickedY = toY;
         chessBoard.prevSquareClickedX = data.prevSqClickedX;
-        chessBoard.prevSquareClickedY = data.prevSqClickedY;
+        chessBoard.prevSquareClickedY = fromY;
+        
+        game.y = toY;
+        game.x = data.sqClickedX;
+        game.prevY = fromY;
+        game.prevX = data.prevSqClickedX;
+        
         render.selectedPiece = data.pieceToMove;
 
         game.movePiece();
+
         render.drawPreviousSquare(chessBoard);  // redraw previous selected square
         render.drawSquare(chessBoard);
-        console.log("got move from server");
-        player.turn = true;
         game.endMove();
-        // are we in check? had to run endMove before checking to reset stuff
-        // game.inCheck();
-        // if (game.check === true) {
-        //     console.log("You are in check by oppenent");
-        //     // we are in check, is it checkmate?
-        //     game.inCheckMate();
-        //     if (game.checkmate === true) {
-        //         console.log("Oppenent won");
-        //         // send message to server
-        //     }
-        // }
+        
+        status.innerHTML = player.colourPieces + " to move";
+        
+        // are we in check?
+        game.inCheck();
+        if (game.check === true) {
+            console.log("You are in check by oppenent");
+            // we are in check, is it checkmate?
+            game.inCheckMate();
+            if (game.checkmate === true) {
+                console.log("Oppenent won");
+                // send message to server
+                // implemet here
+            }
+            else {
+                status.innerHTML += "<b><br>You are in CHECK</b>";
+            }
+        }
         // run endMove again, ready for player to make move
         game.endMove();
+        player.turn = true;
+        
     });
 }); 
