@@ -70,46 +70,49 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
         this.prevX = fromX;
     }
     // no point checking further if move is to square with our own piece
-    if (this.boardLayout.pieceLayout[this.y][this.x] !== null) {
-        if (this.boardLayout.pieceLayout[this.y][this.x].color === this.player.colourPieces) {
-            return false;
-        }
+    // if (this.boardLayout.pieceLayout[this.y][this.x] !== null) {
+    //     if (this.boardLayout.pieceLayout[this.y][this.x].color === this.player.colourPieces) {
+    //         return false;
+    //     }
+    // }
+    // else {
+    this.prevSquare = this.boardLayout.pieceLayout[this.prevY][this.prevX];
+    this.Square = this.boardLayout.pieceLayout[this.y][this.x];
+    if (pieceType === undefined) pieceType = this.boardLayout.pieceLayout[this.prevY][this.prevX].pieceType;
+    // check if piece has moved previously, effects pawns etc
+    this.hasPieceMoved();
+    // call the correct method depending on which piece was selected by player
+    switch (pieceType) {
+        case "pawn":
+            this.checkPawnMove();
+            break;
+        case "king":
+            this.checkKingMove();
+            break;
+        case "queen": // queen uses both validLineMove() and validDiagionalMove()
+            this.checkQueenMove();
+            break;
+        case "rook": // call method used by queen
+            this.validLineMove();
+            break;
+        case "bishop": // call method used by queen
+            this.validDiagonalMove();
+            break;
+        case "knight":
+            this.validKnightMove();
+            break;
+        default: // this should never happen
+            console.log("this should never happen....");
     }
-    else {
-        this.prevSquare = this.boardLayout.pieceLayout[this.prevY][this.prevX];
-        this.Square = this.boardLayout.pieceLayout[this.y][this.x];
-        if (pieceType === undefined) pieceType = this.prevSquare.pieceType;
-        // check if piece has moved previously, effects pawns etc
-        this.hasPieceMoved();
-        // call the correct method depending on which piece was selected by player
-        switch (pieceType) {
-            case "pawn":
-                this.checkPawnMove();
-                break;
-            case "king":
-                this.checkKingMove();
-                break;
-            case "queen": // queen uses both validLineMove() and validDiagionalMove()
-                this.checkQueenMove();
-                break;
-            case "rook": // call method used by queen
-                this.validLineMove();
-                break;
-            case "bishop": // call method used by queen
-                this.validDiagonalMove();
-                break;
-            case "knight":
-                this.validKnightMove();
-                break;
-            default: // this should never happen
-                console.log("not sure what you picked up...");
-        }
+    // temp move the piece so we can look for check
+    this.movePiece();
+    // will King be in check if move happens? last chance to change validMove to false;
+    this.inCheck();
+    // put everything back to how it was
+    this.undoMove();
+    // if true move will be allowed, if false move will be reset in app.js
+    return this.validMove;
 
-        // will King be in check if move happens? last chance to change validMove to false;
-        this.inCheck(this.prevY, this.prevX, this.x, this.y);
-        // if true move will be allowed, if false move will be reset in app.js
-        return this.validMove;
-    }
 
 }
 // next series of methods validate moves, switch statement in checkMove calls the correct one
@@ -315,10 +318,8 @@ GameLogic.prototype.validKnightMove = function () {
         this.validMove = true;
     }
 }
-// will the player attempted move leave them in check?
+// is the player in check
 GameLogic.prototype.inCheck = function () {
-    // temp make move so we can check
-    this.movePiece();
     // where is our king?
     this.findKings();
     // our King in check? 
@@ -331,10 +332,7 @@ GameLogic.prototype.inCheck = function () {
         this.check = true;
         // set to false ready for next check
         this.beingAttacked = false
-        console.log("You are in check");
     }
-    // now put the game state back to how it was
-    this.undoMove();
 }
 
 // switch validMove depending if there is a piece blocking the way
@@ -379,17 +377,13 @@ GameLogic.prototype.inCheckMate = function () {
                     // for every own piece found, it will spam every move, valid or not
                     for (var y = 0; y < 8; y++) {
                         for (var x = 0; x < 8; x++) {
-                            //console.log(y + " " + x + " " + i + " " + j);
-                            console.log(this.check);
+                            
+                            this.checkMove(y, x, i, j, this.boardLayout.pieceLayout[i][j].pieceType);
                             if (this.checkMove(y, x, i, j, this.boardLayout.pieceLayout[i][j].pieceType)) {
                                 this.safeMove = true;
                                 console.log(this.safeMove);
                             }
-                            //console.log(y + " " + x + " " + i + " " + j + this.boardLayout.pieceLayout[i][j].pieceType);
-                            // if (this.validMove) {
-                            //     this.safeMove = true;
-                            //     console.log(this.safeMove);
-                            // }
+       
                         }
                     }
                 }
@@ -400,7 +394,7 @@ GameLogic.prototype.inCheckMate = function () {
     if (this.safeMove !== true) {
         console.log("checkmate");
     }
-    // reset validMove ready for player's move
+    // reset variables
     this.validMove = false;
     this.safeMove = false;
  
@@ -745,14 +739,13 @@ GameLogic.prototype.endMove = function () {
     this.chessBoard.prevSquareClickedY = 0;
     this.chessBoard.squareClickedX = 0;
     this.chessBoard.squareClickedY = 0;
-    // this.y = undefined;
-    // this.x = undefined;
-    // this.prevY = undefined;
-    // this.prevX = undefined;
+    this.y = undefined;
+    this.x = undefined;
+    this.prevY = undefined;
+    this.prevX = undefined;
     this.squareContainsPiece = false;
     this.pieceMoved = false;
     this.validMove = false;
-    this.check = false;
     this.safeSpace = false;
     this.pieceType = "";
 }

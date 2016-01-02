@@ -160,12 +160,15 @@ $(document).ready(function () {
 
         render.drawPreviousSquare(chessBoard);  // redraw previous selected square
         render.drawSquare(chessBoard);
-        game.endMove();
+        //game.endMove();
         
         status.innerHTML = player.colourPieces + " to move";
         
         // are we in check?
         game.inCheck();
+        if (game.check === false) {
+            console.log("dfdf");
+        }
         if (game.check === true) {
             console.log("You are in check by oppenent");
             // we are in check, is it checkmate?
