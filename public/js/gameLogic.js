@@ -69,13 +69,7 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
     } else {
         this.prevX = fromX;
     }
-    // no point checking further if move is to square with our own piece
-    // if (this.boardLayout.pieceLayout[this.y][this.x] !== null) {
-    //     if (this.boardLayout.pieceLayout[this.y][this.x].color === this.player.colourPieces) {
-    //         return false;
-    //     }
-    // }
-    // else {
+
     this.prevSquare = this.boardLayout.pieceLayout[this.prevY][this.prevX];
     this.Square = this.boardLayout.pieceLayout[this.y][this.x];
     if (pieceType === undefined) pieceType = this.boardLayout.pieceLayout[this.prevY][this.prevX].pieceType;
@@ -85,6 +79,7 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
     switch (pieceType) {
         case "pawn":
             this.checkPawnMove();
+            this.validPawnCapture();
             break;
         case "king":
             this.checkKingMove();
@@ -112,29 +107,18 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
     this.undoMove();
     // if true move will be allowed, if false move will be reset in app.js
     return this.validMove;
-
-
 }
 // next series of methods validate moves, switch statement in checkMove calls the correct one
 GameLogic.prototype.checkPawnMove = function () {
-
-    var validForwardSquares = [-1, -2];
-    // checking for a valid capture (pawn may capture one square diagonally forwards)
-    validCapture.call(this, validForwardSquares[0]);
-    // checking for valid move forward
-    if (this.pieceMoved) { // if pawn has moved before, can only move one square forward
-        // call allows to set the context in the function of 'this'
-        validPawnMoveForward.call(this, validForwardSquares[0]); // 0=1
-    }
-    else { // pawn may move 1 or 2 squares forward
-        validPawnMoveForward.call(this, validForwardSquares[0]); // 0=1
-        validPawnMoveForward.call(this, validForwardSquares[1]); // 1=2
-    }
-	
+    // check for move one square forward
+    validPawnMoveForward.call(this, 1);
+    // not previously moved, can try to move 2 squares forward
+    if (!this.pieceMoved) validPawnMoveForward.call(this, 2);
+    
     // function to check if pawn can move forward legally 
     function validPawnMoveForward(num) {
         // if click is 1 or 2 squares forward AND identical x co-ordinates of both clicks
-        if (this.y === this.prevY + num && this.x === this.prevX) {
+        if (this.y === this.prevY - num && this.x === this.prevX) {
             // y = difference between squareclicked and prevSquare clicked
             var y = this.prevY - this.y;
 
@@ -146,19 +130,18 @@ GameLogic.prototype.checkPawnMove = function () {
             this.pieceInTheWay();
         }
     } // validPawnMoveForward()
-	
-    function validCapture(num) {
-        // if click was one row away from prevClick AND one column to the left OR one column to the right
-        if ((this.y === this.prevY + num) && (this.x === this.prevX + num || this.x === this.prevX - num)) {
-            // does the square clicked on contain a piece, remember click on own piece has already been checked
-            this.squareHasPiece(this.y, this.x);
-            // if square contains a piece its a valid move
-            if (this.squareContainsPiece) {
-                this.validMove = true;
-            }
-        }
-    } // validCapture()
 } // checkPawnMove()
+
+GameLogic.prototype.validPawnCapture = function () {
+    if ((this.y === this.prevY - 1) && (this.x === this.prevX + 1 || this.x === this.prevX - 1)) {
+        // does the square clicked on contain a piece, remember click on own piece has already been checked
+        this.squareHasPiece(this.y, this.x);
+        // if square contains a piece its a valid move
+        if (this.squareContainsPiece) {
+            this.validMove = true;
+        }
+    }
+}
 
 // checks already done on click on own piece, so quite straight forward
 GameLogic.prototype.checkKingMove = function () {
@@ -174,7 +157,7 @@ GameLogic.prototype.checkKingMove = function () {
         checkX.call(this);
     }
     // click was one below
-    if (this.y === this.prevY + -1) {
+    if (this.y === this.prevY - 1) {
         checkX.call(this);
     }
     // checks x co-ordinate left, middle then right
@@ -183,6 +166,7 @@ GameLogic.prototype.checkKingMove = function () {
             this.validMove = true;
         }
     }
+
 }
 
 // can combine rooks and bishops methods to check valid queen move
@@ -197,7 +181,7 @@ GameLogic.prototype.validLineMove = function () {
     // only a valid line move if one of these is exactly true
     if (this.x === this.prevX || this.y === this.prevY) {
         // now check the 4 possible directions
-        //////////////////////////////////////////////////////////////
+        
         if (this.y < this.prevY) { // attempt to move upwards
             var y = 1;
             // just one square up, don't worry about pieces in the way, since click on own piece is already checked
@@ -366,38 +350,56 @@ GameLogic.prototype.findKings = function () {
 
 // Player calls this themselves before they begin their move, only called if they are in check
 GameLogic.prototype.inCheckMate = function () {
-    // not optimized, I don't like this code but just get it working!
+    // not optimized, I don't like this code but just get it working! See commented code below this unreadable mess for a more readable attempt
     // look for all our own pieces and spam every move (valid or not), is there a safe move?
+    // Since existing checkMove function looks for check before validating move we can use that, if no valid moves found ~ CHECKMATE
+    // y, x = coords trying to move to      i, j = moving from
     for (var i = 0; i < 8; i++) {
         for (var j = 0; j < 8; j++) {
             if (this.boardLayout.pieceLayout[i][j] !== null) {
-                // found own piece, generate a whole bunch of moves
+                // found own piece
                 if (this.boardLayout.pieceLayout[i][j].color === this.player.colourPieces) {
-                    //console.log("player piece at " + i + " " + j);
-                    // for every own piece found, it will spam every move, valid or not
+                    // for every own piece found, it will attempt every possible move, valid or not
                     for (var y = 0; y < 8; y++) {
                         for (var x = 0; x < 8; x++) {
-                            
-                            this.checkMove(y, x, i, j, this.boardLayout.pieceLayout[i][j].pieceType);
-                            if (this.checkMove(y, x, i, j, this.boardLayout.pieceLayout[i][j].pieceType)) {
-                                this.safeMove = true;
-                                console.log(this.safeMove);
+                            // need to check that pawn can move diagonal
+                            if (this.boardLayout.pieceLayout[y][x] !== null && this.boardLayout.pieceLayout[y][x].pieceType === "pawn" && (x === j - 1 || x === j + 1) && y === i - 1) {
+                                if (this.boardLayout.pieceLayout[y][x].color === this.player.oppenentColour) {
+                                    if (this.checkMove(y, x, i, j, this.boardLayout.pieceLayout[i][j].pieceType)) {
+                                        // found a safe move, not checkmate
+                                        this.safeMove = true;
+                                        console.log(this.safeMove + " from " + i + " " + j + " to " + y + " " + x);
+                                    }
+                                }
+                            } else {
+                                // only check if square is null OR not equal to our own pieces
+                                if (this.boardLayout.pieceLayout[y][x] === null || this.boardLayout.pieceLayout[y][x].color !== this.player.colourPieces) {
+                                    //this.checkMove(y, x, i, j, this.boardLayout.pieceLayout[i][j].pieceType);
+                                    // now it checks the validity of the move
+                                    if (this.checkMove(y, x, i, j, this.boardLayout.pieceLayout[i][j].pieceType)) {
+                                        // found a safe move, not checkmate
+                                        this.safeMove = true;
+                                        console.log(this.safeMove + " from " + i + " " + j + " to " + y + " " + x);
+                                    }
+                                }
                             }
-       
                         }
                     }
                 }
             }
         }
     }
-    // did validMove flip to true?
+    // check if safeMove flipped from false to true
     if (this.safeMove !== true) {
-        console.log("checkmate");
+        // it didn't flip, CHECKMATE!
+        this.checkmate = true;
     }
-    // reset variables
+    // reset variables for next usage
     this.validMove = false;
     this.safeMove = false;
  
+    // Previous attempt at checkmate implementation, was close to getting it to work but cut my losses after wasting way too much time
+    // PART ONE worked, PART TWO has worked, PART THREE messes everything up
     
     // PART ONE - check all valid King Moves, is there a safe one?
     // checkSquare.call(this, this.kingY, this.kingX - 1, this.kingY, this.kingX); // one square left 
@@ -455,7 +457,7 @@ GameLogic.prototype.inCheckMate = function () {
     // // PART THREE - can player block the piece placing them in check?
     // // this.safeSpace still not flipped to true
     // // if safeSpace still false after this then its checkmate!
-    // if (this.safeSpace) {     
+    // if (!this.safeSpace) {     
     //     // find out what is attacking our king
     //     this.underAttack(this.kingY, this.kingX, this.oppenentColour);
     //     this.beingAttacked = false;
@@ -467,15 +469,12 @@ GameLogic.prototype.inCheckMate = function () {
         
     //     // for remaining pieces loop empty squares and then check if we can "attack" an empty square
     //     var yDif = attackingKingY - this.kingY;
-    //     var xDif = attackingKingX - this.kingX;
-        
+    //     var xDif = attackingKingX - this.kingX;     
     //     // remember this wont work for knights since they jump over pieces
     //     // if (this.boardLayout.pieceLayout[attackingKingY][attackingKingX].pieceType === "knight") {
     //     //     this.checkmate = true; // there is no way out of this now
     //     //     console.log("kight can get king");
     //     // }
-
-
     //     if (yDif === 0 && xDif < 0) { //check empty squares to left
     //         for (var i = this.kingX - 1; i > attackingKingX; i--) {
     //             // is this empty square under attack from this player?
@@ -484,8 +483,7 @@ GameLogic.prototype.inCheckMate = function () {
     //             // what is attacking the empty space?
     //             var attackingEmptySpaceY = this.pieceAttackingKingY;
     //             var attackingEmptySpaceX = this.pieceAttackingKingX;
-    //             console.log(attackingEmptySpaceY + " " + attackingEmptySpaceX);
-                
+    //             console.log(attackingEmptySpaceY + " " + attackingEmptySpaceX);              
     //             // we can't use the king to block the path
     //             if (this.boardLayout.pieceLayout[attackingEmptySpaceY][attackingEmptySpaceX].pieceType !== "king") {
     //                 if (this.beingAttacked) {
@@ -494,8 +492,7 @@ GameLogic.prototype.inCheckMate = function () {
     //                 }
     //             }
     //         }
-    //         this.beingAttacked = false; // ensure this is false, ready for next check
-            
+    //         this.beingAttacked = false; // ensure this is false, ready for next check          
     //     }
     // }
 }   
@@ -748,4 +745,5 @@ GameLogic.prototype.endMove = function () {
     this.validMove = false;
     this.safeSpace = false;
     this.pieceType = "";
+    this.check = false;
 }

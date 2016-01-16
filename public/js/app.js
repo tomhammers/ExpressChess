@@ -166,18 +166,17 @@ $(document).ready(function () {
         
         // are we in check?
         game.inCheck();
-        if (game.check === false) {
-            console.log("dfdf");
-        }
         if (game.check === true) {
             console.log("You are in check by oppenent");
             // we are in check, is it checkmate?
             game.inCheckMate();
             if (game.checkmate === true) {
                 console.log("Oppenent won");
+                status.innerHTML += "<b><br>You are in CHECKMATE</b>";
                 // send message to server
                 // implemet here
             }
+            // no checkmate, just let the player know they are in check
             else {
                 status.innerHTML += "<b><br>You are in CHECK</b>";
             }
