@@ -11,10 +11,13 @@ $(document).ready(function () {
 
     var modalBody = document.getElementById('serverMessages');
     // status area so player knows whos turn it is
+    var gameLog = document.getElementById('gameLog');
     var status = document.getElementById('status');
     var roomID = "";
     var nickname = "";
-    
+
+   
+
     function resetMove() {
         chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
         render.drawPreviousSquare(chessBoard);
@@ -113,6 +116,7 @@ $(document).ready(function () {
                     game.incMoveCount();
                     game.endMove();
                     status.innerHTML = game.oppenentColour + " to move";
+                    gameLog.innerHTML += player.colourPieces + " just moved </br>";
 
                 } else { // not a valid second click
                     resetMove();
@@ -148,12 +152,12 @@ $(document).ready(function () {
         chessBoard.squareClickedY = toY;
         chessBoard.prevSquareClickedX = data.prevSqClickedX;
         chessBoard.prevSquareClickedY = fromY;
-        
+
         game.y = toY;
         game.x = data.sqClickedX;
         game.prevY = fromY;
         game.prevX = data.prevSqClickedX;
-        
+
         render.selectedPiece = data.pieceToMove;
 
         game.movePiece();
@@ -163,6 +167,7 @@ $(document).ready(function () {
         //game.endMove();
         
         status.innerHTML = player.colourPieces + " to move";
+        gameLog.innerHTML += game.oppenentColour + " just moved </br>";
         
         // are we in check?
         game.inCheck();
@@ -184,6 +189,6 @@ $(document).ready(function () {
         // run endMove again, ready for player to make move
         game.endMove();
         player.turn = true;
-        
+
     });
 }); 

@@ -7,6 +7,7 @@ var ChessPiece = function ChessPiece(name, pieceType, colour) {
     this.moveCount = 0;
 }
 
+
 var BoardLayout = function BoardLayout() {
     // declare 32 chess piece objects
     this.rookB1 = new ChessPiece("rB1", "rook", "black"); 	// rook black 1

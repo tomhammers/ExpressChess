@@ -7,8 +7,11 @@ var ChessBoard = function ChessBoard(canvas) {
     // width of the parent div ~ a flexible bootstrap column
     this.canvas.width = $(canvas).parent().width();
     this.canvas.height = this.canvas.width; // keeps everything square
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
+    // width and height of the chessboard
+    this.width = (this.canvas.width / 100) * 92;
+    this.height = this.width;
+    // border width
+    this.borderWidth = (this.canvas.width / 100) * 4;
 
     this.rows = 8;
     this.columns = 8;
@@ -39,11 +42,11 @@ var ChessBoard = function ChessBoard(canvas) {
     // this was in drawBoard, this is better since this code can be reused on click events
     ChessBoard.prototype.drawSquare = function (row, column) {
         if (this.validFirstClick) {
-            this.colourSquare('yellow', row * this.squareWidth, column * this.squareHeight);
+            this.colourSquare('yellow', row * this.squareWidth + this.borderWidth, column * this.squareHeight + this.borderWidth);
         } else if (this.alternativeSquare(row, column)) {
-            this.colourSquare('#6d6a6a', row * this.squareWidth, column * this.squareHeight);
+            this.colourSquare('#6d6a6a', row * this.squareWidth + this.borderWidth, column * this.squareHeight + this.borderWidth);
         } else {
-            this.colourSquare('white', row * this.squareWidth, column * this.squareHeight);
+            this.colourSquare('white', row * this.squareWidth + this.borderWidth, column * this.squareHeight + this.borderWidth);
         }
     }
 
@@ -64,8 +67,8 @@ var ChessBoard = function ChessBoard(canvas) {
     ChessBoard.prototype.squareClicked = function (event) {
         // note the need to minus the canvas offset from the main window or we get wrong co-ords
         // to fix mouse offsets - got help from http://stackoverflow.com/questions/25934607/bootstrap-offset-and-html5-canvas
-        this.canvasX = event.pageX - this.canvas.offsetLeft - $(this.canvas).parent().offset().left - 2; // where user clicked - canvas offset - border
-        this.canvasY = event.pageY - this.canvas.offsetTop - $(this.canvas).parent().offset().top - 2;
+        this.canvasX = event.pageX - this.canvas.offsetLeft - $(this.canvas).parent().offset().left - this.borderWidth - 2; // where user clicked - canvas offset - canvasBorder - border
+        this.canvasY = event.pageY - this.canvas.offsetTop - $(this.canvas).parent().offset().top  - this.borderWidth - 2;
         this.squareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
         this.squareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
     };
@@ -100,8 +103,8 @@ var ChessPieceImage = function ChessPieceImage(pathToImage, chessBoardObject, x,
 
     // puts a 3% margin around the piece, should center the piece in its square
     // these are added to the x and y coordinates in drawImage below
-    this.xMargin = (chessBoardObject.squareWidth / 100) * 3;
-    this.yMargin = (chessBoardObject.squareHeight / 100) * 3;
+    this.xMargin = (chessBoardObject.squareWidth / 100) * 3 + chessBoardObject.borderWidth;
+    this.yMargin = (chessBoardObject.squareHeight / 100) * 3 + chessBoardObject.borderWidth;
 
     // x === to the index in the row for loop in the Render object which is passed to this method
     // y === to the index in the column for loop in the Render object which is passed to this method
