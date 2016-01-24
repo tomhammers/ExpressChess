@@ -16,6 +16,11 @@ var Render = function Render(boardLayoutObject) {
 			}
 		}
 	}
+    
+    Render.prototype.printCoords = function (chessBoardObject, colourPieces) {
+        chessBoardObject.printChessCoords(colourPieces);
+    }
+    
 	// this code used to be part of drawPieces method
 	// but now this code can be reused on click events (used in drawSquare)
 	Render.prototype.drawPiece = function (chessBoardObject, row, column) {

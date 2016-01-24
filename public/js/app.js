@@ -1,10 +1,12 @@
 "use strict";
 $(document).ready(function () {
+    $("#checkmateModal").modal({ show: false });
     var socket = io();
     var chessBoard = new ChessBoard(document.getElementById('game'));
     var boardLayout = new BoardLayout(); // layout of the chess pieces
     var render = new Render(boardLayout); // pass chessboard object to the renderer
     var player = new Player();
+    var url;
 	
     // objects are 'passed by reference' so game object will always know the state of the board
     var game = new GameLogic(player, boardLayout, chessBoard);
@@ -13,10 +15,12 @@ $(document).ready(function () {
     // status area so player knows whos turn it is
     var gameLog = document.getElementById('gameLog');
     var status = document.getElementById('status');
+    var gameOverMessage = document.getElementById('gameOverMessage');
     var roomID = "";
     var nickname = "";
 
-   
+    var files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    var ranks = [8, 7, 6, 5, 4, 3, 2, 1];
 
     function resetMove() {
         chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
@@ -32,25 +36,37 @@ $(document).ready(function () {
             console.log("here");
         }
     }
+    
+    // updates move history that the players see
+    function updateMoveHistory(colourPieces, piece, prevX, prevY, x, y) {
+        gameLog.innerHTML += colourPieces + " " + piece + " from " + files[prevX] + "" + ranks[prevY] +
+        " to " + files[x] + "" + ranks[y] + "</br>";
+    }
 
     socket.on('new game', function (data) {
         // server decides whos turn and what colour pieces
         player.turn = data.turn;
         player.colourPieces = data.colour;
+        if (player.colourPieces === "black") {
+            ranks.reverse();
+        }
         roomID = data.room;
         nickname = data.nickname;
         game.oppenentPiece(); // set colour of oppenent pieces
+        url = data.url;
         
         render.drawBoard(chessBoard); // this should only need drawing as required
         if (player.colourPieces === "black") {
             // reverse the pieceLayout array so that player sees pieces at the bottom
             boardLayout.pieceLayout.reverse();
             render.drawPieces(chessBoard);
+            render.printCoords(chessBoard, player.colourPieces);
         } else { // white pieces, leave the array as it is
             render.drawPieces(chessBoard);
+            render.printCoords(chessBoard, player.colourPieces);
         }
 
-        $('.modal').modal('show');
+        $('#greetingModal').modal('show');
         modalBody.innerHTML += "Hello Player " + data.player + ", here is your nickname: <b>" + nickname + "</b></br>";
         modalBody.innerHTML += "You are playing as <b>" + data.colour + "</b></br>";
         if (player.colourPieces === "white") {
@@ -113,10 +129,16 @@ $(document).ready(function () {
                         move: boardLayout,
                         room: roomID
                     });
+
+                    updateMoveHistory(player.colourPieces, render.selectedPiece.pieceType, chessBoard.prevSquareClickedX,
+                        chessBoard.prevSquareClickedY, chessBoard.squareClickedX, chessBoard.squareClickedY);
+
+
                     game.incMoveCount();
                     game.endMove();
                     status.innerHTML = game.oppenentColour + " to move";
-                    gameLog.innerHTML += player.colourPieces + " just moved </br>";
+                    // ensure newest move is always visible
+                    gameLog.scrollTop = gameLog.scrollHeight;
 
                 } else { // not a valid second click
                     resetMove();
@@ -164,10 +186,12 @@ $(document).ready(function () {
 
         render.drawPreviousSquare(chessBoard);  // redraw previous selected square
         render.drawSquare(chessBoard);
-        //game.endMove();
-        
+
         status.innerHTML = player.colourPieces + " to move";
-        gameLog.innerHTML += game.oppenentColour + " just moved </br>";
+        //gameLog.innerHTML += game.oppenentColour + " just moved </br>";
+        updateMoveHistory(game.oppenentColour, render.selectedPiece.pieceType, data.prevSqClickedX, fromY, data.sqClickedX, toY);     
+        // ensure newest move is always visible
+        gameLog.scrollTop = gameLog.scrollHeight;
         
         // are we in check?
         game.inCheck();
@@ -176,10 +200,17 @@ $(document).ready(function () {
             // we are in check, is it checkmate?
             game.inCheckMate();
             if (game.checkmate === true) {
-                console.log("Oppenent won");
+                // if the modal doesn't load for any reason
                 status.innerHTML += "<b><br>You are in CHECKMATE</b>";
-                // send message to server
-                // implemet here
+                // open modal to let them know they lost!
+                $("#checkmateModal").modal({ show: true });
+                gameOverMessage.innerHTML += "Oppenent Won </br>";
+                gameOverMessage.innerHTML += "Set up a new game: <a href =\"" + url + "\">" + url + "</a>";
+                
+                // Let the server know game over so other player will know
+                socket.emit('checkmate', {
+                    room: roomID
+                });
             }
             // no checkmate, just let the player know they are in check
             else {
@@ -188,7 +219,21 @@ $(document).ready(function () {
         }
         // run endMove again, ready for player to make move
         game.endMove();
-        player.turn = true;
+        // players turn as long as its not checkmate
+        if (!game.checkmate) {
+            player.turn = true;
+        }
 
+    });
+
+    socket.on('checkmate', function (data) {
+        // since player is receiving this message they have won
+        $("#checkmateModal").modal({ show: true });
+        gameOverMessage.innerHTML += "Congratulations! You Win </br>";
+        gameOverMessage.innerHTML += "Set up a new game: <a href =\"" + data.url + "\">" + data.url + "</a>";
+    });
+    
+    socket.on('player disconnected', function (data) {
+        console.log("player left");
     });
 }); 

@@ -8,11 +8,13 @@ var io = require('socket.io')(http);
 var Moniker = require('moniker'); // generates nicknames
 var names = Moniker.generator([Moniker.adjective]);
 var clients = [];
+var rooms = [];
+
 var player1 = undefined;
 var player2 = undefined;
-var rooms = [];
+
 var roomID = "";
-var URL = ""; 
+var URL = "";
 var chessURL = ""; // url that player 1 will need to send to player 2
 var clientsInRoom = 0; // how many clients in a room?
 
@@ -71,11 +73,10 @@ io.on('connection', function (socket) {
             shareURL: chessURL,
             player: 1,
             nickname: socket.nickname,
-            colour: "white"
-            //turn: false
+            colour: "white",
+            url: URL
         });
-        // else room already exists, we will assume player 2 but not perfect solution
-        // FIX - THIRD OR MORE PERSON IN LOBBY IS ALSO "Player 2"
+        // else room already exists, we will assume player 2, slight possibility of someone unintended entering the game?
     } else {
         socket.join(roomID);
         // if number of clients equals 2 exactly
@@ -86,7 +87,8 @@ io.on('connection', function (socket) {
                 shareURL: chessURL,
                 player: 2,
                 nickname: socket.nickname,
-                colour: "black"
+                colour: "black",
+                url: URL
             });
             socket.broadcast.to(roomID).emit('black connected', {
                 nickname: socket.nickname
@@ -96,7 +98,7 @@ io.on('connection', function (socket) {
         if (Object.keys(socket.adapter.rooms[roomID]).length > 2) {
             socket.leave(roomID);
             // 
-            socket.emit('game full', { url: URL});
+            socket.emit('game full', { url: URL });
         }
     } // else
 
@@ -106,15 +108,20 @@ io.on('connection', function (socket) {
         socket.broadcast.to(data.room).emit('piece move', data);
     });
     
-    // black sends white  their nickname
+    // black sends white their nickname
     socket.on('white nickname', function (data) {
         socket.broadcast.to(data.room).emit('white nickname', data);
     });
-    
-    //nicknames.push(socket.nickname);
+
     console.log(socket.id + " " + socket.nickname + ' connected');
     console.log(clientCount + ' users connected');
     clients.push(socket);
+    
+    // only sends to winner
+    socket.on('checkmate', function (data) {
+        socket.broadcast.to(data.room).emit('checkmate', { url: URL });
+    });
+
 
     socket.on('disconnect', function () {
         clientCount = io.engine.clientsCount;
@@ -122,10 +129,23 @@ io.on('connection', function (socket) {
         console.log(clientCount + ' users connected');
         // http://stackoverflow.com/questions/4647348/send-message-to-specific-client-with-socket-io-and-node-js
         var index = clients.indexOf(socket);
+        console.log(index);
         if (index != -1) {
             clients.splice(index, 1);
-            console.info('Client gone (id=' + socket.id + ').');
+            console.info('Client gone (id= ' + socket.id + ')');
         }
+
+
+        if (io.sockets.adapter.rooms[rooms][socket.id]) {
+            console.log("blah");
+        }
+        
+        // var roomsDis = io.sockets.manager.roomClients[socket.id];Liste
+        // for (var room in roomsDis) {
+        //     socket.leave(room);
+            
+        //     socket.broadcast.to(room).emit('player disconnected', "playerLeft");
+        // }
     });
 });
 

@@ -1,6 +1,15 @@
 canvas {
-  border-color: grey;
+  border-color: black;
   border-style: solid;
   border-width: 2px;
 
+}
+
+#gameLog {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.log {
+    padding-top: 20px;
 }

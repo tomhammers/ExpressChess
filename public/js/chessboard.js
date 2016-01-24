@@ -48,12 +48,57 @@ var ChessBoard = function ChessBoard(canvas) {
         } else {
             this.colourSquare('white', row * this.squareWidth + this.borderWidth, column * this.squareHeight + this.borderWidth);
         }
+        this.drawChessBorder();
+    }
+
+    ChessBoard.prototype.drawChessBorder = function () {
+        // basicly just draw a square by calculating each corner of the chessboard
+        this.context.beginPath();
+        this.context.moveTo(this.borderWidth, this.borderWidth);                                // top left corner
+        this.context.lineTo(this.width + this.borderWidth, this.borderWidth);                   // top right corner
+        this.context.lineTo(this.width + this.borderWidth, this.height + this.borderWidth);     // bottom right corner
+        this.context.lineTo(this.borderWidth, this.height + this.borderWidth);                  // bottom left corner
+        this.context.lineTo(this.borderWidth, this.borderWidth);                                // top left corner
+        this.context.stroke();
     }
 
     ChessBoard.prototype.colourSquare = function (colour, x, y) {
         this.context.fillStyle = colour;
         this.context.fillRect(x, y, this.squareWidth, this.squareHeight)
     };
+
+    ChessBoard.prototype.printChessCoords = function (colourPieces) {
+        var char = 'a';
+        var wnum = 8;
+        var bnum = 1;
+        this.context.font = "bold 12px Arial";
+        this.context.fillStyle = "black";
+        for (var i = 0; i < 8; i++) {
+            // files across the top (letters)
+            this.context.fillText(char, i * this.squareWidth + this.borderWidth + this.squareWidth / 2, this.borderWidth - 5);
+            // files across the bottom (letters)
+            this.context.fillText(char, i * this.squareWidth + this.borderWidth + this.squareWidth / 2, this.borderWidth + this.height + (this.borderWidth / 100 * 75));
+            char = nextChar(char);
+            if (colourPieces === "white") {
+                // rank down left hand side (numbers)
+                this.context.fillText(wnum, this.borderWidth / 2, i * this.squareHeight + this.borderWidth + this.squareHeight / 2);
+                // rank down right hand side (numbers)
+                this.context.fillText(wnum, this.borderWidth + this.width + (this.borderWidth / 100 * 20), i * this.squareHeight + this.borderWidth + this.squareHeight / 2);
+                wnum--;
+            } 
+            else {
+                // flip numbers around for black
+                this.context.fillText(bnum, this.borderWidth / 2, i * this.squareHeight + this.borderWidth + this.squareHeight / 2);
+                this.context.fillText(bnum, this.borderWidth + this.width + (this.borderWidth / 100 * 20), i * this.squareHeight + this.borderWidth + this.squareHeight / 2);
+                bnum++;
+            }
+        }
+        
+        // increment letters, found here http://stackoverflow.com/questions/12504042/what-is-a-method-that-can-be-used-to-increment-letters
+        function nextChar(c) {
+            return String.fromCharCode(c.charCodeAt(0) + 1);
+        }
+    }
 
     ChessBoard.prototype.alternativeSquare = function (row, column) {
         return (this.checkIfEven(row) && !this.checkIfEven(column)) || // even row, odd column OR
@@ -68,7 +113,7 @@ var ChessBoard = function ChessBoard(canvas) {
         // note the need to minus the canvas offset from the main window or we get wrong co-ords
         // to fix mouse offsets - got help from http://stackoverflow.com/questions/25934607/bootstrap-offset-and-html5-canvas
         this.canvasX = event.pageX - this.canvas.offsetLeft - $(this.canvas).parent().offset().left - this.borderWidth - 2; // where user clicked - canvas offset - canvasBorder - border
-        this.canvasY = event.pageY - this.canvas.offsetTop - $(this.canvas).parent().offset().top  - this.borderWidth - 2;
+        this.canvasY = event.pageY - this.canvas.offsetTop - $(this.canvas).parent().offset().top - this.borderWidth - 2;
         this.squareClickedX = Math.ceil(this.canvasX / this.squareWidth) - 1; // -1 to count from 0
         this.squareClickedY = Math.ceil(this.canvasY / this.squareHeight) - 1;
     };
