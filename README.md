@@ -13,6 +13,6 @@ npm start
 # Development
 While a full game can be played in most instances, need to fix / implement:
 
-*Fix checkmate (works in most cases).
-*Add castling.
-*Add Pawn promotion.
+-Fix checkmate (works in most cases).
+-Add castling.
+-Add Pawn promotion.
