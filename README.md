@@ -1,5 +1,5 @@
 # ExpressChess
-Real time chess using Node, Express and Socket.io.
+Real time chess using Node, Express, Socket.io and HTML5 canvas.
 
 For educational purposes - no chess libaries were used.
 
