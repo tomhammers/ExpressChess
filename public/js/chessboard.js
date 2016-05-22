@@ -25,9 +25,9 @@ var ChessBoard = function ChessBoard(canvas) {
     this.squareClickedY = -1;		// to get X and Y coords of square clicked
 
     this.prevSquareClickedX = -1;	// used after user clicks a new square ~
-    this.prevSquareClickedY = -1;	// 				redraw the old square
+    this.prevSquareClickedY = -1;	// redraw the old square
 	
-    this.selectedPiece; 		// what did the user click on?
+    this.selectedPiece; 		    // what did the user click on?
 	
     this.validFirstClick = false;
 

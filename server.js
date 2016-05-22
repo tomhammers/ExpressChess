@@ -134,18 +134,6 @@ io.on('connection', function (socket) {
             clients.splice(index, 1);
             console.info('Client gone (id= ' + socket.id + ')');
         }
-
-
-        if (io.sockets.adapter.rooms[rooms][socket.id]) {
-            console.log("blah");
-        }
-        
-        // var roomsDis = io.sockets.manager.roomClients[socket.id];Liste
-        // for (var room in roomsDis) {
-        //     socket.leave(room);
-            
-        //     socket.broadcast.to(room).emit('player disconnected', "playerLeft");
-        // }
     });
 });
 
@@ -154,4 +142,3 @@ http.listen(port, function () {
     console.log('listening on: ' + port);
     console.log(names.choose());
 });
-

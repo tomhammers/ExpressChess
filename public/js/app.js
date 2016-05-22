@@ -2,26 +2,34 @@
 $(document).ready(function () {
     $("#checkmateModal").modal({ show: false });
     var socket = io();
+    
+    // create new objects to pass to a new gameLogic object
     var chessBoard = new ChessBoard(document.getElementById('game'));
     var boardLayout = new BoardLayout(); // layout of the chess pieces
-    var render = new Render(boardLayout); // pass chessboard object to the renderer
     var player = new Player();
-    var url;
-	
+    
     // objects are 'passed by reference' so game object will always know the state of the board
     var game = new GameLogic(player, boardLayout, chessBoard);
 
+    var url;
+    
+    // this object will be used whenever there is a need to draw something on the canvas
+    var render = new Render(boardLayout);
+	
+    // parts of the dom of which we can update the content
     var modalBody = document.getElementById('serverMessages');
-    // status area so player knows whos turn it is
     var gameLog = document.getElementById('gameLog');
     var status = document.getElementById('status');
     var gameOverMessage = document.getElementById('gameOverMessage');
+
     var roomID = "";
     var nickname = "";
-
+    
+    // these are only used for visual move history currently
     var files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
     var ranks = [8, 7, 6, 5, 4, 3, 2, 1];
-
+    
+    // if invalid clicks move will reset
     function resetMove() {
         chessBoard.validFirstClick = false; // set to false or prev square will remain yellow
         render.drawPreviousSquare(chessBoard);
@@ -33,29 +41,33 @@ $(document).ready(function () {
     function updateMoveStatus() {
         if (player.colourPieces === "white" && player.turn === true) {
             status.innerHTML = "White to play";
-            console.log("here");
         }
     }
     
-    // updates move history that the players see
+    // updates the move history on the front end
     function updateMoveHistory(colourPieces, piece, prevX, prevY, x, y) {
         gameLog.innerHTML += colourPieces + " " + piece + " from " + files[prevX] + "" + ranks[prevY] +
         " to " + files[x] + "" + ranks[y] + "</br>";
     }
-
+    
+    // on connecting to the server, the server will send back a new game message
     socket.on('new game', function (data) {
         // server decides whos turn and what colour pieces
         player.turn = data.turn;
         player.colourPieces = data.colour;
         if (player.colourPieces === "black") {
+            // black pieces will be reversed, so reverse the ranks (numbers on the sides of the board)
             ranks.reverse();
         }
+        // store this so the client knows what 'room' to send the move to
         roomID = data.room;
         nickname = data.nickname;
         game.oppenentPiece(); // set colour of oppenent pieces
         url = data.url;
-        
-        render.drawBoard(chessBoard); // this should only need drawing as required
+        // this could have been drawn previously? 
+        render.drawBoard(chessBoard);
+
+
         if (player.colourPieces === "black") {
             // reverse the pieceLayout array so that player sees pieces at the bottom
             boardLayout.pieceLayout.reverse();
@@ -69,6 +81,7 @@ $(document).ready(function () {
         $('#greetingModal').modal('show');
         modalBody.innerHTML += "Hello Player " + data.player + ", here is your nickname: <b>" + nickname + "</b></br>";
         modalBody.innerHTML += "You are playing as <b>" + data.colour + "</b></br>";
+
         if (player.colourPieces === "white") {
             modalBody.innerHTML += "Send this URL to a friend: <b>" + data.shareURL + "</b></br>";
             document.getElementById('waitingForPlayer').innerHTML = "Waiting for oppenent to connect....";
@@ -77,7 +90,7 @@ $(document).ready(function () {
         document.getElementById('nickname').innerHTML = "<b>" + data.nickname + "</b>";
     });
     
-    // waiting for an oppenent to connect to our game
+    // waiting for an oppenent to connect to our game as player one
     socket.on('black connected', function (data) {
         document.getElementById('waitingForPlayer').innerHTML = "<b>Player 2 Connected</b><br>";
         document.getElementById('waitingForPlayer').innerHTML += "<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Play</button>";
@@ -103,7 +116,8 @@ $(document).ready(function () {
         modalBody.innerHTML += "Sorry, game has commenced <br>";
         modalBody.innerHTML += "Set up a new game: <a href =\"" + data.url + "\">" + data.url + "</a>";
     });
-
+    
+    // mousedown event
     chessBoard.canvas.addEventListener("mousedown", function () {
         // only do something with the click event if its the players turn
         if (player.turn === true) {
@@ -129,16 +143,16 @@ $(document).ready(function () {
                         move: boardLayout,
                         room: roomID
                     });
-
+                    // updates the move history that the client sees
                     updateMoveHistory(player.colourPieces, render.selectedPiece.pieceType, chessBoard.prevSquareClickedX,
                         chessBoard.prevSquareClickedY, chessBoard.squareClickedX, chessBoard.squareClickedY);
-
+                    // ensure newest move is always visible
+                    gameLog.scrollTop = gameLog.scrollHeight;
 
                     game.incMoveCount();
                     game.endMove();
                     status.innerHTML = game.oppenentColour + " to move";
-                    // ensure newest move is always visible
-                    gameLog.scrollTop = gameLog.scrollHeight;
+
 
                 } else { // not a valid second click
                     resetMove();
@@ -155,7 +169,7 @@ $(document).ready(function () {
         }
     }, false);
 	
-    //get piece clicked on mouse up so it can be used on next mouse click
+    // get piece clicked on mouse up so it can be used on next mouse down
     chessBoard.canvas.addEventListener("mouseup", function () {
         if (player.turn === true) {
             chessBoard.prevSquareClickedX = Math.ceil(chessBoard.canvasX / chessBoard.squareWidth) - 1; // -1 to count from 0
@@ -167,6 +181,9 @@ $(document).ready(function () {
     // listening for server to send oppenents move
     socket.on('piece move', function (data) {
         console.log("got move from server");
+        /* Since player two has their board array reversed, everytime a player
+        sends a piece move the Y coordinates need to be reversed to match
+        that players pieceLayout array */
         var toY = -(data.sqClickedY - 7);
         var fromY = -(data.prevSqClickedY - 7)
 
@@ -184,11 +201,11 @@ $(document).ready(function () {
 
         game.movePiece();
 
-        render.drawPreviousSquare(chessBoard);  // redraw previous selected square
+        render.drawPreviousSquare(chessBoard);
         render.drawSquare(chessBoard);
 
         status.innerHTML = player.colourPieces + " to move";
-        //gameLog.innerHTML += game.oppenentColour + " just moved </br>";
+        // both players move history should always be in sync
         updateMoveHistory(game.oppenentColour, render.selectedPiece.pieceType, data.prevSqClickedX, fromY, data.sqClickedX, toY);     
         // ensure newest move is always visible
         gameLog.scrollTop = gameLog.scrollHeight;
@@ -196,7 +213,6 @@ $(document).ready(function () {
         // are we in check?
         game.inCheck();
         if (game.check === true) {
-            console.log("You are in check by oppenent");
             // we are in check, is it checkmate?
             game.inCheckMate();
             if (game.checkmate === true) {
@@ -233,6 +249,7 @@ $(document).ready(function () {
         gameOverMessage.innerHTML += "Set up a new game: <a href =\"" + data.url + "\">" + data.url + "</a>";
     });
     
+    // did make attempt at dealing with disconnections, this needs work in the future
     socket.on('player disconnected', function (data) {
         console.log("player left");
     });

@@ -4,7 +4,8 @@ var GameLogic = function GameLogic(player, boardLayout, chessBoard) {
     this.boardLayout = boardLayout;
     this.chessBoard = chessBoard;
     this.oppenentColour = "";
-    this.oppenentPiece(); // sets this.oppenentColour
+    // run this now to set the oppenents colour
+    this.oppenentPiece(); 
 	
     this.squareContainsPiece = false;
     this.pieceOnSquare;
@@ -25,13 +26,11 @@ var GameLogic = function GameLogic(player, boardLayout, chessBoard) {
     // what piece is attacking? needed for checking checkmate
     this.pieceAttackingKingY;
     this.pieceAttackingKingX;
-
-
-
+    // various bools for checking conditions
     this.pieceMoved = false;
     this.validMove = false;
     this.check = false; 		// are WE in check?
-    this.checkmate = false;		// have we put oppenent in checkmate?
+    this.checkmate = false;		
     this.beingAttacked = false;
     this.safeSpace = false; // found a safe space to move to?
     this.safeMove = false; // is there a move that gets out of check?
@@ -54,16 +53,19 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
     } else {
         this.y = toY;
     }
+
     if (toX === undefined) {
         this.x = this.chessBoard.squareClickedX;
     } else {
         this.x = toX;
     }
+
     if (fromY === undefined) {
         this.prevY = this.chessBoard.prevSquareClickedY;
     } else {
         this.prevY = fromY;
     }
+
     if (fromX === undefined) {
         this.prevX = this.chessBoard.prevSquareClickedX;
     } else {
@@ -72,6 +74,8 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
 
     this.prevSquare = this.boardLayout.pieceLayout[this.prevY][this.prevX];
     this.Square = this.boardLayout.pieceLayout[this.y][this.x];
+    
+    // if receiving a 'piece move' message from the server this will be defined
     if (pieceType === undefined) pieceType = this.boardLayout.pieceLayout[this.prevY][this.prevX].pieceType;
     // check if piece has moved previously, effects pawns etc
     this.hasPieceMoved();
@@ -79,7 +83,6 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
     switch (pieceType) {
         case "pawn":
             this.checkPawnMove();
-            //this.validPawnCapture();
             break;
         case "king":
             this.checkKingMove();
@@ -96,7 +99,7 @@ GameLogic.prototype.checkMove = function (toY, toX, fromY, fromX, pieceType) {
         case "knight":
             this.validKnightMove();
             break;
-        default: // this should never happen
+        default: 
             console.log("this should never happen....");
     }
     // temp move the piece so we can look for check
@@ -141,17 +144,14 @@ GameLogic.prototype.checkPawnMove = function () {
 } // checkPawnMove()
 
 GameLogic.prototype.validPawnCapture = function () {
-    // one square diagonally in NE or NW direction
-    //if ((this.y === this.prevY - 1) && (this.x === this.prevX + 1 || this.x === this.prevX - 1)) {
+
     // does the square clicked on contain a piece
     this.squareHasPiece(this.y, this.x);
     // if square contains a piece its a valid move
     if (this.squareContainsPiece) {
         this.validMove = true;
     }
-      
-    // }
-    
+    // resetting
     this.squareContainsPiece = false;
     this.pieceOnSquare = null;
 }
@@ -172,7 +172,7 @@ GameLogic.prototype.checkKingMove = function () {
     if (this.y === this.prevY - 1) {
         checkX.call(this);
     }
-    // checks x co-ordinate left, middle then right
+    // checks x co-ordinate left, middle then right - saves a bit of repeated code
     function checkX() {
         if (this.x === this.prevX - 1 || this.x === this.prevX || this.x === this.prevX + 1) {
             this.validMove = true;
@@ -183,7 +183,6 @@ GameLogic.prototype.checkKingMove = function () {
 
 // can combine rooks and bishops methods to check valid queen move
 GameLogic.prototype.checkQueenMove = function () {
-    // remember already checked for clicks on own pieces
     this.validLineMove();
     this.validDiagonalMove();
 }
@@ -196,7 +195,7 @@ GameLogic.prototype.validLineMove = function () {
         
         if (this.y < this.prevY) { // attempt to move upwards
             var y = 1;
-            // just one square up, don't worry about pieces in the way, since click on own piece is already checked
+            // just one square up, don't worry about pieces in the way
             if (this.y + y === this.prevY) {
                 this.validMove = true;
             }
