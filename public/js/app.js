@@ -118,7 +118,7 @@ $(document).ready(function () {
     });
     
     // mousedown event
-    chessBoard.canvas.addEventListener("mousedown", function () {
+    chessBoard.canvas.addEventListener("mousedown", function (event) {
         // only do something with the click event if its the players turn
         if (player.turn === true) {
             chessBoard.squareClicked(event); // work out where the user clicked
@@ -170,7 +170,7 @@ $(document).ready(function () {
     }, false);
 	
     // get piece clicked on mouse up so it can be used on next mouse down
-    chessBoard.canvas.addEventListener("mouseup", function () {
+    chessBoard.canvas.addEventListener("mouseup", function (event) {
         if (player.turn === true) {
             chessBoard.prevSquareClickedX = Math.ceil(chessBoard.canvasX / chessBoard.squareWidth) - 1; // -1 to count from 0
             chessBoard.prevSquareClickedY = Math.ceil(chessBoard.canvasY / chessBoard.squareHeight) - 1;
