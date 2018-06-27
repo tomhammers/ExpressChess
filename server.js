@@ -44,7 +44,7 @@ app.get('/', function (req, res) {
     });
 });
 
-// this route only allows a regex containing 6 alphanumeric chars only
+// this route only allows a regex containing 6 alphanumeric chars
 app.get('/:room([A-Za-z0-9]{6})', function (req, res) {
     chessURL = req.protocol + '://' + req.get('host') + req.path;
     chessURL += req.url;
@@ -140,5 +140,4 @@ io.on('connection', function (socket) {
 var port = 3000;
 http.listen(port, function () {
     console.log('listening on: ' + port);
-    console.log(names.choose());
 });

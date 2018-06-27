@@ -2,7 +2,11 @@
   "name": "nodechess",
   "version": "0.1.0",
   "description": "Online chess game",
-  "main": "app.js",
+  "main": "server.js",
+  "engines": {
+    "node": "9.3.0",
+    "npm": "5.7.1"
+  },
   "dependencies": {
     "ejs": "^2.3.4",
     "express": "^4.13.3",
@@ -12,7 +16,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
